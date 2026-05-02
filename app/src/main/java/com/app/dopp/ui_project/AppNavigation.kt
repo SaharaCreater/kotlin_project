@@ -6,30 +6,55 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.app.dopp.physics.ExperimentType
 
 @Composable
 fun AppNavigation(navController: NavHostController) {
     NavHost(
         navController = navController,
-        startDestination = "experiments_list" // Начальный экран приложения
+        startDestination = "main"
     ) {
-        // Экрана со списком экспериментов
+        // Main screen (home)
+        composable(route = "main") {
+            MainScreen(
+                onExperimentsClick = {
+                    navController.navigate("experiments_list")
+                }
+            )
+        }
+        
+        // Experiments list screen
         composable(route = "experiments_list") {
-            // Твой основной экран со списком опытов
-            ExperimentsListScreen(navController = navController)
+            ExperimentsListScreen(
+                onExperimentSelected = { experimentType ->
+                    navController.navigate("ar/${experimentType.name}")
+                },
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
         }
 
-        // Экран AR с передачей URL модели через аргументы
+        // AR experiment screen
         composable(
-            route = "ar/{modelUrl}",
+            route = "ar/{experimentType}",
             arguments = listOf(
-                navArgument("modelUrl") { type = NavType.StringType }
+                navArgument("experimentType") { type = NavType.StringType }
             )
         ) { backStackEntry ->
-            // Извлекаем URL модели из аргументов навигации
-            val modelUrl = backStackEntry.arguments?.getString("modelUrl") ?: ""
-            // Вызываем ARScreen, передавая полученную ссылку
-            ARScreen(modelUrl = modelUrl)
+            val experimentTypeName = backStackEntry.arguments?.getString("experimentType") ?: ""
+            val experimentType = try {
+                ExperimentType.valueOf(experimentTypeName)
+            } catch (e: IllegalArgumentException) {
+                ExperimentType.PENDULUM // Default fallback
+            }
+            
+            ARScreen(
+                experimentType = experimentType,
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }
