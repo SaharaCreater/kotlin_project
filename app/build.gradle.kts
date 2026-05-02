@@ -3,13 +3,12 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("kotlin-kapt")
+    id("com.google.dagger.hilt.android")
 }
 
 android {
     namespace = "com.app.dopp"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.app.dopp"
@@ -66,7 +65,16 @@ dependencies {
     kapt("androidx.room:room-compiler:$roomVersion")
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
-    implementation("io.github.sceneview:arsceneview:0.10.0")
+    implementation("io.github.sceneview:arsceneview:2.2.1")
     implementation("com.google.android.gms:play-services-code-scanner:16.1.0")
     implementation("androidx.compose.material:material-icons-extended")
+    
+    // Hilt
+    implementation("com.google.dagger:hilt-android:2.51.1")
+    kapt("com.google.dagger:hilt-compiler:2.51.1")
+}
+
+// Allow references to generated code
+kapt {
+    correctErrorTypes = true
 }
