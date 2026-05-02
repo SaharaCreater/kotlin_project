@@ -23,7 +23,7 @@ object DatabaseModule {
     @Singleton
     fun provideRetrofit(): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("https://raw.githubusercontent.com/your_username/your_repo/main/") // Замени на свой URL позже
+            .baseUrl("https://raw.githubusercontent.com/your_username/your_repo/main/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
@@ -33,9 +33,26 @@ object DatabaseModule {
     fun providePhysicsApi(retrofit: Retrofit): PhysicsApi {
         return retrofit.create(PhysicsApi::class.java)
     }
+
     @Provides
     @Singleton
     fun provideScanner(@ApplicationContext context: Context): ScannerManager {
         return ScannerManager(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
+        return Room.databaseBuilder(
+            context,
+            AppDatabase::class.java,
+            "physics_database"
+        ).build()
+    }
+
+    @Provides
+    @Singleton
+    fun providePhysicsDao(database: AppDatabase): PhysicsDao {
+        return database.dao()
     }
 }
