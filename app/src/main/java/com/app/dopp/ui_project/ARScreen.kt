@@ -205,7 +205,7 @@ fun ARScreen(
                 onGestureListener = object : io.github.sceneview.gesture.GestureDetector.OnGestureListener {
                     override fun onDown(e: MotionEvent, node: io.github.sceneview.node.Node?) {}
                     override fun onShowPress(e: MotionEvent, node: io.github.sceneview.node.Node?) {}
-                    override fun onSingleTapUp(e: MotionEvent, node: io.github.sceneview.node.Node?): Boolean = false
+                    override fun onSingleTapUp(e: MotionEvent, node: io.github.sceneview.node.Node?) {}
                     override fun onSingleTapConfirmed(e: MotionEvent, node: io.github.sceneview.node.Node?) {
                         if (!anySimulationStarted) {
                             startSimulation()
@@ -215,16 +215,16 @@ fun ARScreen(
                     override fun onDoubleTapEvent(e: MotionEvent, node: io.github.sceneview.node.Node?) {}
                     override fun onContextClick(e: MotionEvent, node: io.github.sceneview.node.Node?) {}
                     override fun onLongPress(e: MotionEvent, node: io.github.sceneview.node.Node?) {}
-                    override fun onFling(e1: MotionEvent?, e2: MotionEvent, node: io.github.sceneview.node.Node?, velocity: dev.romainguy.kotlin.math.Float2): Boolean = false
-                    override fun onScroll(e1: MotionEvent?, e2: MotionEvent, node: io.github.sceneview.node.Node?, distance: dev.romainguy.kotlin.math.Float2): Boolean = false
-                    override fun onMoveBegin(detector: io.github.sceneview.gesture.MoveGestureDetector, e: MotionEvent, node: io.github.sceneview.node.Node?): Boolean = false
-                    override fun onMove(detector: io.github.sceneview.gesture.MoveGestureDetector, e: MotionEvent, node: io.github.sceneview.node.Node?): Boolean = false
+                    override fun onFling(e1: MotionEvent?, e2: MotionEvent, node: io.github.sceneview.node.Node?, velocity: dev.romainguy.kotlin.math.Float2) {}
+                    override fun onScroll(e1: MotionEvent?, e2: MotionEvent, node: io.github.sceneview.node.Node?, distance: dev.romainguy.kotlin.math.Float2) {}
+                    override fun onMoveBegin(detector: io.github.sceneview.gesture.MoveGestureDetector, e: MotionEvent, node: io.github.sceneview.node.Node?) {}
+                    override fun onMove(detector: io.github.sceneview.gesture.MoveGestureDetector, e: MotionEvent, node: io.github.sceneview.node.Node?) {}
                     override fun onMoveEnd(detector: io.github.sceneview.gesture.MoveGestureDetector, e: MotionEvent, node: io.github.sceneview.node.Node?) {}
-                    override fun onRotateBegin(detector: io.github.sceneview.gesture.RotateGestureDetector, e: MotionEvent, node: io.github.sceneview.node.Node?): Boolean = false
-                    override fun onRotate(detector: io.github.sceneview.gesture.RotateGestureDetector, e: MotionEvent, node: io.github.sceneview.node.Node?): Boolean = false
+                    override fun onRotateBegin(detector: io.github.sceneview.gesture.RotateGestureDetector, e: MotionEvent, node: io.github.sceneview.node.Node?) {}
+                    override fun onRotate(detector: io.github.sceneview.gesture.RotateGestureDetector, e: MotionEvent, node: io.github.sceneview.node.Node?) {}
                     override fun onRotateEnd(detector: io.github.sceneview.gesture.RotateGestureDetector, e: MotionEvent, node: io.github.sceneview.node.Node?) {}
-                    override fun onScaleBegin(detector: io.github.sceneview.gesture.ScaleGestureDetector, e: MotionEvent, node: io.github.sceneview.node.Node?): Boolean = false
-                    override fun onScale(detector: io.github.sceneview.gesture.ScaleGestureDetector, e: MotionEvent, node: io.github.sceneview.node.Node?): Boolean = false
+                    override fun onScaleBegin(detector: io.github.sceneview.gesture.ScaleGestureDetector, e: MotionEvent, node: io.github.sceneview.node.Node?) {}
+                    override fun onScale(detector: io.github.sceneview.gesture.ScaleGestureDetector, e: MotionEvent, node: io.github.sceneview.node.Node?) {}
                     override fun onScaleEnd(detector: io.github.sceneview.gesture.ScaleGestureDetector, e: MotionEvent, node: io.github.sceneview.node.Node?) {}
                 }
             )
