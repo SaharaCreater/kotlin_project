@@ -1,0 +1,14 @@
+{
+  "users": [
+    {
+      "id": "f6bda1df-c32e-449c-b143-494a1f9467f8",
+      "email": "test@test.com",
+      "name": "Тест Пользователь",
+      "password_hash": "$2b$10$SNFtOu1EsT8Wxbo15p.eLugMwiSbrnPb7aBcE0LoeVQTidx.nPcJi",
+      "avatar_color": "#B5264C",
+      "created_at": 1778614216959
+    }
+  ],
+  "progress": [],
+  "sessions": []
+}

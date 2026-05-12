@@ -1,65 +1,75 @@
-const GRAVITY = 9.81;
-const BOLTZMANN = 1.380649e-23;
-const PI = Math.PI;
+// Physics Engine — pure calculation functions
+const Physics = {
+  G: 9.81,
+  DT: 1 / 60,
 
-const PhysicsCalc = {
-  pendulumAngle(theta0, L, t, damping = 0.02) {
-    const omega = Math.sqrt(GRAVITY / L);
-    return theta0 * Math.cos(omega * t) * Math.exp(-damping * t);
+  // Pendulum
+  pendulumStep(theta, omega, L, damping, dt = Physics.DT) {
+    const alpha = -(Physics.G / L) * Math.sin(theta) - damping * omega;
+    const newOmega = omega + alpha * dt;
+    const newTheta = theta + newOmega * dt;
+    return { theta: newTheta, omega: newOmega };
   },
-  pendulumAngVel(theta0, L, t, damping = 0.02) {
-    const omega = Math.sqrt(GRAVITY / L);
-    return -theta0 * omega * Math.sin(omega * t) * Math.exp(-damping * t);
-  },
-  pendulumPeriod(L) { return 2 * PI * Math.sqrt(L / GRAVITY); },
+  pendulumPeriod(L) { return 2 * Math.PI * Math.sqrt(L / Physics.G); },
 
-  freeFallPos(h0, v0, t) { return h0 + v0 * t - 0.5 * GRAVITY * t * t; },
-  freeFallVel(v0, t) { return v0 - GRAVITY * t; },
-  fallTime(h) { return Math.sqrt(2 * h / GRAVITY); },
-
-  elasticCollision(m1, v1, m2, v2) {
-    const M = m1 + m2;
-    return [(((m1 - m2) / M) * v1 + (2 * m2 / M) * v2),
-            ((2 * m1 / M) * v1 + ((m2 - m1) / M) * v2)];
-  },
-  inelasticCollision(m1, v1, m2, v2) { return (m1 * v1 + m2 * v2) / (m1 + m2); },
-  kineticEnergy(m, v) { return 0.5 * m * v * v; },
-  momentum(m, v) { return m * v; },
-
-  seriesR(...rs) { return rs.reduce((a, b) => a + b, 0); },
-  parallelR(...rs) {
-    const s = rs.reduce((a, r) => a + (r > 0 ? 1 / r : 0), 0);
-    return s > 0 ? 1 / s : 0;
-  },
-  ohmsI(V, R) { return R > 0 ? V / R : 0; },
-  ohmsV(I, R) { return I * R; },
-  power(V, I) { return V * I; },
-
-  magneticB(I, r) {
-    const mu0 = 4 * PI * 1e-7;
-    return r > 0 ? mu0 * I / (2 * PI * r) : 0;
+  // Free fall
+  freeFallStep(y, vy, dt = Physics.DT) {
+    const ay = -Physics.G;
+    const newVy = vy + ay * dt;
+    const newY = y + newVy * dt;
+    return { y: newY, vy: newVy };
   },
 
-  snellAngle(theta1, n1, n2) {
-    const ratio = (n1 / n2) * Math.sin(theta1);
-    return Math.abs(ratio) <= 1 ? Math.asin(ratio) : null;
+  // Collision (1D elastic/inelastic)
+  collisionVelocities(m1, m2, v1, v2, elastic = true) {
+    if (elastic) {
+      const v1f = ((m1 - m2) * v1 + 2 * m2 * v2) / (m1 + m2);
+      const v2f = ((m2 - m1) * v2 + 2 * m1 * v1) / (m1 + m2);
+      return { v1f, v2f };
+    } else {
+      const vf = (m1 * v1 + m2 * v2) / (m1 + m2);
+      return { v1f: vf, v2f: vf };
+    }
   },
-  criticalAngle(n1, n2) { return n1 > n2 ? Math.asin(n2 / n1) : null; },
+  kineticEnergy: (m, v) => 0.5 * m * v * v,
+  momentum: (m, v) => m * v,
 
-  imageDistance(do_, f) {
-    if (do_ === f) return Infinity;
-    return (f * do_) / (do_ - f);
+  // Electricity
+  ohmVoltage: (I, R) => I * R,
+  ohmCurrent: (V, R) => V / R,
+  seriesResistance: (rs) => rs.reduce((a, r) => a + r, 0),
+  parallelResistance: (rs) => 1 / rs.reduce((s, r) => s + 1 / r, 0),
+  power: (V, I) => V * I,
+
+  // Optics — Snell's law
+  snell(theta1, n1, n2) {
+    const sinTheta2 = (n1 / n2) * Math.sin(theta1);
+    if (Math.abs(sinTheta2) > 1) return null; // total internal reflection
+    return Math.asin(sinTheta2);
   },
-  magnification(do_, di) { return do_ !== 0 ? -di / do_ : 0; },
+  criticalAngle: (n1, n2) => n1 > n2 ? Math.asin(n2 / n1) : null,
 
-  idealGasP(n, T, V) { return V > 0 ? n * 8.314 * T / V : 0; },
-  rmsSpeed(T, m) { return Math.sqrt(3 * BOLTZMANN * T / m); },
-  brownianD(T, eta, r) { return BOLTZMANN * T / (6 * PI * eta * r); },
+  // Lens (thin lens equation): 1/f = 1/do + 1/di
+  lensImage(f, do_) {
+    if (Math.abs(do_ - f) < 0.001) return { di: Infinity, m: Infinity, isReal: true };
+    const di = (f * do_) / (do_ - f);
+    const m = -di / do_;
+    return { di, m, isReal: di > 0 };
+  },
+
+  // Thermodynamics
+  idealGasVolume: (n, R, T, P) => (n * R * T) / P,
+  R_GAS: 8.314,
+  celsiusToKelvin: (C) => C + 273.15,
+
+  // Brownian motion step
+  brownianStep(x, y, kT, r, eta, dt = Physics.DT) {
+    const D = kT / (6 * Math.PI * eta * r);
+    const std = Math.sqrt(2 * D * dt);
+    return {
+      x: x + std * (Math.random() * 2 - 1) * Math.sqrt(3),
+      y: y + std * (Math.random() * 2 - 1) * Math.sqrt(3),
+    };
+  },
+  BOLTZMANN: 1.380649e-23,
 };
-
-function randGaussian() {
-  let u = 0, v = 0;
-  while (u === 0) u = Math.random();
-  while (v === 0) v = Math.random();
-  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * PI * v);
-}

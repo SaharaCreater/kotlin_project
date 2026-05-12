@@ -1,144 +1,68 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <meta name="theme-color" content="#6750A4"/>
   <title>Физика в AR — DoPP</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="/css/md3.css"/>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
 <body>
-  <div id="app">
-    <!-- Main Screen -->
-    <div id="screen-main" class="screen active">
-      <header class="top-bar">
-        <h1 class="app-title">Физика в AR</h1>
-      </header>
-      <main class="main-content">
-        <div class="hero-card">
-          <div class="hero-inner">
-            <div class="hero-header">
-              <div class="hero-icon-wrap">
-                <svg class="hero-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M7 2v2H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2h-2V2h-2v2H9V2H7zm0 6h10v2H7V8zm0 4h7v2H7v-2z"/></svg>
-              </div>
-              <div>
-                <div class="hero-title">Изучайте физику</div>
-                <div class="hero-subtitle">в дополненной реальности</div>
-              </div>
-            </div>
-            <p class="hero-desc">9 интерактивных экспериментов с настраиваемыми параметрами и визуализацией в реальном времени</p>
-            <button class="btn-primary" onclick="showExperimentsScreen()">
-              <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M8 5v14l11-7z"/></svg>
-              Начать эксперименты
-            </button>
-          </div>
-        </div>
-
-        <h2 class="section-title">Категории экспериментов</h2>
-        <div class="categories-grid">
-          <div class="category-card" onclick="showExperimentsScreen('MECHANICS')" style="--cat-color:#2196F3">
-            <div class="cat-icon-wrap">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 15.5A3.5 3.5 0 018.5 12 3.5 3.5 0 0112 8.5a3.5 3.5 0 013.5 3.5 3.5 3.5 0 01-3.5 3.5m7.43-2.92c.04-.36.07-.73.07-1.08s-.03-.73-.07-1.08l2.38-1.85c.21-.16.27-.44.14-.67l-2.25-3.9c-.13-.23-.41-.3-.64-.21l-2.8 1.12c-.58-.45-1.21-.83-1.9-1.12l-.42-2.98A.53.53 0 0014 2h-4a.53.53 0 00-.53.45l-.42 2.98c-.69.29-1.32.67-1.9 1.12L4.35 5.43a.5.5 0 00-.64.21L1.46 9.54c-.13.23-.07.51.14.67l2.38 1.85c-.04.35-.07.72-.07 1.08s.03.73.07 1.08L1.6 16.07a.5.5 0 00-.14.67l2.25 3.9c.13.23.41.3.64.21l2.8-1.12c.58.45 1.21.83 1.9 1.12l.42 2.98c.07.26.29.45.53.45h4c.24 0 .46-.19.53-.45l.42-2.98c.69-.29 1.32-.67 1.9-1.12l2.8 1.12c.23.09.51.02.64-.21l2.25-3.9c.13-.23.07-.51-.14-.67l-2.38-1.85z"/></svg>
-            </div>
-            <span class="cat-name">Механика</span>
-            <span class="cat-count">3 экспер.</span>
-          </div>
-          <div class="category-card" onclick="showExperimentsScreen('ELECTRICITY')" style="--cat-color:#FFC107">
-            <div class="cat-icon-wrap">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
-            </div>
-            <span class="cat-name">Электричество</span>
-            <span class="cat-count">2 экспер.</span>
-          </div>
-          <div class="category-card" onclick="showExperimentsScreen('OPTICS')" style="--cat-color:#9C27B0">
-            <div class="cat-icon-wrap">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/></svg>
-            </div>
-            <span class="cat-name">Оптика</span>
-            <span class="cat-count">2 экспер.</span>
-          </div>
-          <div class="category-card" onclick="showExperimentsScreen('THERMODYNAMICS')" style="--cat-color:#FF5722">
-            <div class="cat-icon-wrap">
-              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 0.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/></svg>
-            </div>
-            <span class="cat-name">Термодинамика</span>
-            <span class="cat-count">2 экспер.</span>
-          </div>
-        </div>
-
-        <div class="info-section">
-          <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-          <div>
-            <div class="info-label">Как использовать</div>
-            <div class="info-text">Выберите эксперимент, настройте параметры и нажмите Старт для запуска симуляции</div>
-          </div>
-        </div>
-      </main>
-    </div>
-
-    <!-- Experiments List Screen -->
-    <div id="screen-experiments" class="screen">
-      <header class="top-bar top-bar--back">
-        <button class="btn-back" onclick="showMainScreen()">
-          <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-        </button>
-        <h1 class="app-title">Физические эксперименты</h1>
-      </header>
-      <div class="filter-chips" id="filter-chips"></div>
-      <div class="experiments-list" id="experiments-list"></div>
-    </div>
-
-    <!-- Experiment / Simulation Screen -->
-    <div id="screen-sim" class="screen">
-      <div class="sim-canvas-wrap">
-        <canvas id="sim-canvas"></canvas>
+  <!-- App Shell -->
+  <div id="app" class="app-shell">
+    <!-- Navigation Rail (desktop) / Bottom Nav (mobile) -->
+    <nav id="nav-rail" class="nav-rail" style="display:none">
+      <div class="nav-rail-logo">
+        <span class="material-symbols-rounded nav-logo-icon">science</span>
+        <span class="nav-logo-text">DoPP</span>
       </div>
-
-      <!-- Top bar overlay -->
-      <div class="sim-topbar">
-        <button class="sim-btn" onclick="showExperimentsScreen()">
-          <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-        </button>
-        <div class="sim-exp-title" id="sim-exp-title"></div>
-        <button class="sim-btn" id="btn-info-toggle" onclick="toggleInfo()">
-          <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+      <div class="nav-rail-items" id="nav-rail-items"></div>
+      <div class="nav-rail-footer">
+        <button class="nav-item" id="nav-profile-rail" onclick="App.navigate('/profile')">
+          <div class="nav-avatar" id="nav-avatar-rail">?</div>
+          <span class="nav-label">Профиль</span>
         </button>
       </div>
+    </nav>
+    <nav id="nav-bottom" class="nav-bottom" style="display:none">
+      <div id="nav-bottom-items" class="nav-bottom-items"></div>
+    </nav>
 
-      <!-- Info panel -->
-      <div class="info-panel" id="info-panel">
-        <div class="info-panel-title">Данные эксперимента</div>
-        <hr class="info-divider"/>
-        <div id="info-panel-content"></div>
-      </div>
-
-      <!-- Control buttons -->
-      <div class="sim-controls">
-        <button class="sim-ctrl-btn sim-ctrl-btn--primary" id="btn-play" onclick="togglePlay()">
-          <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M8 5v14l11-7z"/></svg>
-        </button>
-        <button class="sim-ctrl-btn sim-ctrl-btn--secondary" onclick="resetSim()">
-          <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
-        </button>
-      </div>
-
-      <!-- Parameters panel -->
-      <div class="params-panel" id="params-panel">
-        <div class="params-handle" onclick="toggleParams()">
-          <div class="handle-bar"></div>
-        </div>
-        <div class="params-header">
-          <span class="params-title">Параметры</span>
-          <button class="params-toggle-btn" id="params-toggle-btn" onclick="toggleParams()">
-            <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6 1.41 1.41z"/></svg>
-          </button>
-        </div>
-        <div class="params-content" id="params-content"></div>
-      </div>
-    </div>
+    <!-- Main content area -->
+    <main id="main-content" class="main-content">
+      <div id="view-container" class="view-container"></div>
+    </main>
   </div>
 
-  <script src="physics.js"></script>
-  <script src="simulations.js"></script>
-  <script src="app.js"></script>
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Dialog overlay -->
+  <div id="dialog-overlay" class="dialog-overlay" style="display:none">
+    <div id="dialog" class="dialog"></div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/physics.js"></script>
+  <script src="/simulations.js"></script>
+  <script src="/js/services/AuthService.js"></script>
+  <script src="/js/services/ApiService.js"></script>
+  <script src="/js/services/CacheService.js"></script>
+  <script src="/js/models/Experiment.js"></script>
+  <script src="/js/viewmodels/AuthViewModel.js"></script>
+  <script src="/js/viewmodels/ExperimentsViewModel.js"></script>
+  <script src="/js/viewmodels/SimulationViewModel.js"></script>
+  <script src="/js/views/LoginView.js"></script>
+  <script src="/js/views/HomeView.js"></script>
+  <script src="/js/views/ExperimentsView.js"></script>
+  <script src="/js/views/ExperimentDetailView.js"></script>
+  <script src="/js/views/ScannerView.js"></script>
+  <script src="/js/views/ProfileView.js"></script>
+  <script src="/js/router.js"></script>
+  <script src="/js/app.js"></script>
 </body>
 </html>
