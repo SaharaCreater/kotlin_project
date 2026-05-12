@@ -7,8 +7,41 @@
       "password_hash": "$2b$10$SNFtOu1EsT8Wxbo15p.eLugMwiSbrnPb7aBcE0LoeVQTidx.nPcJi",
       "avatar_color": "#B5264C",
       "created_at": 1778614216959
+    },
+    {
+      "id": "b28aebac-0245-4d52-adb8-76b3fb839b08",
+      "email": "z.p.shevtsov@gmail.com",
+      "name": "Sahara",
+      "password_hash": "$2b$10$6WtK7/hoxRCheTcnlDlfIuUa.SAu2dsqc.VrkPMrn.HCKCs9CZutq",
+      "avatar_color": "#B5264C",
+      "created_at": 1778617308306
     }
   ],
-  "progress": [],
+  "progress": [
+    {
+      "id": "eaea4c81-af40-4b4b-ba53-3c38a8a6d718",
+      "user_id": "b28aebac-0245-4d52-adb8-76b3fb839b08",
+      "experiment_id": "PENDULUM",
+      "run_count": 4,
+      "completed": true,
+      "last_run_at": 1778617513115
+    },
+    {
+      "id": "76a9099d-a023-4f27-a592-0fc7da14e68d",
+      "user_id": "b28aebac-0245-4d52-adb8-76b3fb839b08",
+      "experiment_id": "FREE_FALL",
+      "run_count": 2,
+      "completed": true,
+      "last_run_at": 1778617566019
+    },
+    {
+      "id": "e93c1caa-e27a-47be-afe6-e5c0ec90199f",
+      "user_id": "b28aebac-0245-4d52-adb8-76b3fb839b08",
+      "experiment_id": "ELECTRIC_CIRCUIT",
+      "run_count": 2,
+      "completed": true,
+      "last_run_at": 1778617503334
+    }
+  ],
   "sessions": []
 }
