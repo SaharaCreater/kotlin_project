@@ -209,6 +209,7 @@ fun ARScreen(
                             startSimulation()
                         }
                     }
+                    override fun onContextClick(e: MotionEvent, node: io.github.sceneview.node.Node?) {}
                 }
             )
             
