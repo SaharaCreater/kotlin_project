@@ -202,13 +202,11 @@ fun ARScreen(
                     config.instantPlacementMode = Config.InstantPlacementMode.LOCAL_Y_UP
                     config.lightEstimationMode = Config.LightEstimationMode.ENVIRONMENTAL_HDR
                 },
-                onGestureListener = remember {
-                    object : io.github.sceneview.gesture.GestureDetector.OnGestureListener {
-                        override fun onSingleTapConfirmed(e: MotionEvent, node: io.github.sceneview.node.Node?) {
-                            // Start simulation on tap if not started
-                            if (!anySimulationStarted) {
-                                startSimulation()
-                            }
+                onGestureListener = object : io.github.sceneview.gesture.GestureDetector.OnGestureListener {
+                    override fun onSingleTapConfirmed(e: MotionEvent, node: io.github.sceneview.node.Node?) {
+                        // Start simulation on tap if not started
+                        if (!anySimulationStarted) {
+                            startSimulation()
                         }
                     }
                 }
