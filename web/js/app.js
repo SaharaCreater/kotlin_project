@@ -69,7 +69,10 @@ const App = (() => {
   function navigate(path) { _router.navigate(path); }
 
   function _requireAuth() {
-    if (!AuthService.isLoggedIn()) { _router.navigate('/login', true); throw new Error('Not authenticated'); }
+    if (!AuthService.isLoggedIn()) {
+      _router.navigate('/login', true);
+      throw new Error('Not authenticated'); // caught by router._activate try-catch
+    }
   }
 
   function showToast(msg, duration = 3000) {

@@ -9,6 +9,7 @@ class ExperimentDetailView {
     this._ctx = null;
     this._qrRendered = false;
     this._experiment = null;
+    this._resizeBound = () => this._resizeCanvas(); // stable reference for removeEventListener
   }
 
   async render(container) {
@@ -28,7 +29,7 @@ class ExperimentDetailView {
     this._ctx = this._canvas.getContext('2d');
     this._resizeCanvas();
     this._unsub = this.simVm.subscribe(s => this._onState(s, container));
-    window.addEventListener('resize', () => this._resizeCanvas());
+    window.addEventListener('resize', this._resizeBound);
     this.simVm.start();
   }
 
@@ -242,7 +243,7 @@ class ExperimentDetailView {
   _buildParamsHTML(id) {
     const defs = SimRenderer.getParamDefs(id) || [];
     return defs.map(d => {
-      const curVal = SimulationViewModel.DEFAULT_PARAMS[id]?.[d.key];
+      const curVal = (SimulationViewModel.DEFAULTS || SimulationViewModel.DEFAULT_PARAMS || {})[id]?.[d.key];
       if (d.type === 'bool') {
         return `<div class="param-toggle-row">
           <span class="param-row-label">${d.label}</span>
@@ -266,6 +267,8 @@ class ExperimentDetailView {
   destroy() {
     if (this._unsub) this._unsub();
     this.simVm.destroy();
-    window.removeEventListener('resize', () => this._resizeCanvas());
+    window.removeEventListener('resize', this._resizeBound);
+    this._canvas = null;
+    this._ctx = null;
   }
 }

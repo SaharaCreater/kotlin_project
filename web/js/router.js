@@ -16,7 +16,6 @@ class Router {
 
   navigate(path, replace = false) {
     if (path === -1) { history.back(); return; }
-    // Preserve hash routing
     const newHash = '#' + path;
     if (replace) history.replaceState(null, '', newHash);
     else history.pushState(null, '', newHash);
@@ -29,7 +28,6 @@ class Router {
     const queryStr = hash.includes('?') ? hash.split('?')[1] : '';
     const params = Object.fromEntries(new URLSearchParams(queryStr));
 
-    // Match route
     for (const route of this._routes) {
       const match = this._matchPath(route.path, path);
       if (match !== null) {
@@ -37,7 +35,6 @@ class Router {
         return;
       }
     }
-    // Fallback
     this._activate(this._routes.find(r => r.path === '/404') || this._routes[0], params);
   }
 
@@ -57,16 +54,36 @@ class Router {
     if (this._current === route.path && !route.alwaysRefresh) return;
     this._current = route.path;
 
-    // Destroy current view
-    if (this._view?.destroy) this._view.destroy();
+    // Destroy previous view safely
+    try {
+      if (this._view && typeof this._view.destroy === 'function') this._view.destroy();
+    } catch (e) { console.warn('View destroy error:', e); }
     this._view = null;
 
-    // Scroll to top
     if (this._container) this._container.scrollTop = 0;
 
-    // Create and render new view
-    const view = route.factory(params);
+    // Create and render new view — catch factory errors (e.g. auth redirect)
+    let view;
+    try {
+      view = route.factory(params);
+    } catch (e) {
+      // Factory threw (e.g. _requireAuth navigated away) — view already set by redirect
+      return;
+    }
+
     this._view = view;
-    view.render(this._container, params);
+    try {
+      view.render(this._container, params);
+    } catch (e) {
+      console.error('View render error:', e);
+      if (this._container) {
+        this._container.innerHTML = `<div class="page"><div class="empty-state">
+          <span class="material-symbols-rounded">error</span>
+          <h3>Что-то пошло не так</h3>
+          <p>${e.message}</p>
+          <button class="btn btn-filled" onclick="App.navigate('/home')" style="margin-top:16px">На главную</button>
+        </div></div>`;
+      }
+    }
   }
 }
