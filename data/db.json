@@ -46,9 +46,9 @@
       "id": "f6fdea90-e95e-4424-ba8f-ba5c6c35b1f4",
       "user_id": "b28aebac-0245-4d52-adb8-76b3fb839b08",
       "experiment_id": "COLLISION",
-      "run_count": 1,
+      "run_count": 2,
       "completed": true,
-      "last_run_at": 1778619896813
+      "last_run_at": 1778740905915
     }
   ],
   "sessions": []
