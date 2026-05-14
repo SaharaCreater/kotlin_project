@@ -24,12 +24,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.app.dopp.physics.ExperimentCategory
 import com.app.dopp.physics.ExperimentType
+import com.app.dopp.ui_project.components.OfflineBanner
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExperimentsListScreen(
     onExperimentSelected: (ExperimentType) -> Unit,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    isOffline: Boolean = false
 ) {
     var selectedCategory by remember { mutableStateOf<ExperimentCategory?>(null) }
     
@@ -69,6 +71,8 @@ fun ExperimentsListScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
+            OfflineBanner(isOffline = isOffline)
+
             // Category filter chips
             LazyRow(
                 modifier = Modifier
@@ -106,7 +110,6 @@ fun ExperimentsListScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Group by category if no filter selected
                 if (selectedCategory == null) {
                     ExperimentCategory.entries.forEach { category ->
                         val categoryExperiments = filteredExperiments.filter { it.category == category }
@@ -197,7 +200,6 @@ private fun ExperimentCard(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icon with gradient background
             Box(
                 modifier = Modifier
                     .size(56.dp)
@@ -220,7 +222,6 @@ private fun ExperimentCard(
                 )
             }
             
-            // Text content
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -238,7 +239,6 @@ private fun ExperimentCard(
                 )
             }
             
-            // Arrow indicator
             Icon(
                 imageVector = Icons.Default.ChevronRight,
                 contentDescription = "Открыть",
@@ -259,10 +259,10 @@ private fun getCategoryIcon(category: ExperimentCategory): ImageVector {
 
 private fun getCategoryColor(category: ExperimentCategory): Color {
     return when (category) {
-        ExperimentCategory.MECHANICS -> Color(0xFF2196F3) // Blue
-        ExperimentCategory.ELECTRICITY -> Color(0xFFFFC107) // Amber
-        ExperimentCategory.OPTICS -> Color(0xFF9C27B0) // Purple
-        ExperimentCategory.THERMODYNAMICS -> Color(0xFFFF5722) // Deep Orange
+        ExperimentCategory.MECHANICS -> Color(0xFF2196F3)
+        ExperimentCategory.ELECTRICITY -> Color(0xFFFFC107)
+        ExperimentCategory.OPTICS -> Color(0xFF9C27B0)
+        ExperimentCategory.THERMODYNAMICS -> Color(0xFFFF5722)
     }
 }
 

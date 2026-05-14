@@ -1,6 +1,9 @@
 package com.app.dopp.ui_project
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -14,28 +17,31 @@ fun AppNavigation(navController: NavHostController) {
         navController = navController,
         startDestination = "main"
     ) {
-        // Main screen (home)
         composable(route = "main") {
+            val viewModel: PhysicsViewModel = hiltViewModel()
+            val isOffline by viewModel.isOffline.collectAsStateWithLifecycle()
             MainScreen(
                 onExperimentsClick = {
                     navController.navigate("experiments_list")
-                }
+                },
+                isOffline = isOffline
             )
         }
-        
-        // Experiments list screen
+
         composable(route = "experiments_list") {
+            val viewModel: PhysicsViewModel = hiltViewModel()
+            val isOffline by viewModel.isOffline.collectAsStateWithLifecycle()
             ExperimentsListScreen(
                 onExperimentSelected = { experimentType ->
                     navController.navigate("ar/${experimentType.name}")
                 },
                 onBackClick = {
                     navController.popBackStack()
-                }
+                },
+                isOffline = isOffline
             )
         }
 
-        // AR experiment screen
         composable(
             route = "ar/{experimentType}",
             arguments = listOf(
@@ -46,9 +52,9 @@ fun AppNavigation(navController: NavHostController) {
             val experimentType = try {
                 ExperimentType.valueOf(experimentTypeName)
             } catch (e: IllegalArgumentException) {
-                ExperimentType.PENDULUM // Default fallback
+                ExperimentType.PENDULUM
             }
-            
+
             ARScreen(
                 experimentType = experimentType,
                 onBackClick = {

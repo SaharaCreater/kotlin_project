@@ -4,24 +4,35 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
-import com.app.dopp.data.ScannerManager // Проверь правильность этого импорта
+import com.app.dopp.data.ScannerManager
 import com.app.dopp.data.repository.PhysicsRepository
 import com.app.dopp.domain.PhysicsExperiment
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class PhysicsViewModel @Inject constructor(
     private val repository: PhysicsRepository,
-    private val scannerManager: ScannerManager // ДОБАВЛЕНО: Теперь ViewModel знает о сканере
+    private val scannerManager: ScannerManager
 ) : ViewModel() {
 
     private val _experiments = MutableStateFlow<List<PhysicsExperiment>>(emptyList())
     val experiments: StateFlow<List<PhysicsExperiment>> = _experiments.asStateFlow()
+
+    val isOffline: StateFlow<Boolean> = repository.networkMonitor.isOnline
+        .map { !it }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = false
+        )
 
     init {
         loadData()
@@ -29,9 +40,7 @@ class PhysicsViewModel @Inject constructor(
 
     private fun loadData() {
         viewModelScope.launch {
-            // Сначала запускаем обновление из сети (Requirement 5)
             repository.refreshExperiments()
-            // Затем подписываемся на данные из БД (Requirement 4)
             repository.getExperimentsFromDb().collect { list ->
                 _experiments.value = list
             }
@@ -39,10 +48,8 @@ class PhysicsViewModel @Inject constructor(
     }
 
     fun onScanClick(navController: NavHostController) {
-        // Теперь scannerManager доступен, так как он передан через конструктор
         scannerManager.startScanning { result ->
             result?.let { url ->
-                // Переходим в AR, используя полученную из QR ссылку
                 navController.navigate("ar/${Uri.encode(url)}")
             }
         }

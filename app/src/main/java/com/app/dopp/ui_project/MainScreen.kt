@@ -18,11 +18,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.app.dopp.physics.ExperimentCategory
+import com.app.dopp.ui_project.components.OfflineBanner
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
-    onExperimentsClick: () -> Unit
+    onExperimentsClick: () -> Unit,
+    isOffline: Boolean = false
 ) {
     Scaffold(
         topBar = {
@@ -43,71 +45,74 @@ fun MainScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // Hero section
-            HeroCard(onExperimentsClick = onExperimentsClick)
-            
-            // Categories preview
-            Text(
-                text = "Категории экспериментов",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
-            
-            // Category cards grid
+            OfflineBanner(isOffline = isOffline)
+
             Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                HeroCard(onExperimentsClick = onExperimentsClick)
+
+                Text(
+                    text = "Категории экспериментов",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    CategoryCard(
-                        category = ExperimentCategory.MECHANICS,
-                        icon = Icons.Default.Settings,
-                        color = Color(0xFF2196F3),
-                        experimentsCount = 3,
-                        modifier = Modifier.weight(1f),
-                        onClick = onExperimentsClick
-                    )
-                    CategoryCard(
-                        category = ExperimentCategory.ELECTRICITY,
-                        icon = Icons.Default.Bolt,
-                        color = Color(0xFFFFC107),
-                        experimentsCount = 2,
-                        modifier = Modifier.weight(1f),
-                        onClick = onExperimentsClick
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        CategoryCard(
+                            category = ExperimentCategory.MECHANICS,
+                            icon = Icons.Default.Settings,
+                            color = Color(0xFF2196F3),
+                            experimentsCount = 3,
+                            modifier = Modifier.weight(1f),
+                            onClick = onExperimentsClick
+                        )
+                        CategoryCard(
+                            category = ExperimentCategory.ELECTRICITY,
+                            icon = Icons.Default.Bolt,
+                            color = Color(0xFFFFC107),
+                            experimentsCount = 2,
+                            modifier = Modifier.weight(1f),
+                            onClick = onExperimentsClick
+                        )
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        CategoryCard(
+                            category = ExperimentCategory.OPTICS,
+                            icon = Icons.Default.Lightbulb,
+                            color = Color(0xFF9C27B0),
+                            experimentsCount = 2,
+                            modifier = Modifier.weight(1f),
+                            onClick = onExperimentsClick
+                        )
+                        CategoryCard(
+                            category = ExperimentCategory.THERMODYNAMICS,
+                            icon = Icons.Default.Whatshot,
+                            color = Color(0xFFFF5722),
+                            experimentsCount = 2,
+                            modifier = Modifier.weight(1f),
+                            onClick = onExperimentsClick
+                        )
+                    }
                 }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    CategoryCard(
-                        category = ExperimentCategory.OPTICS,
-                        icon = Icons.Default.Lightbulb,
-                        color = Color(0xFF9C27B0),
-                        experimentsCount = 2,
-                        modifier = Modifier.weight(1f),
-                        onClick = onExperimentsClick
-                    )
-                    CategoryCard(
-                        category = ExperimentCategory.THERMODYNAMICS,
-                        icon = Icons.Default.Whatshot,
-                        color = Color(0xFFFF5722),
-                        experimentsCount = 2,
-                        modifier = Modifier.weight(1f),
-                        onClick = onExperimentsClick
-                    )
-                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                InfoSection()
             }
-            
-            Spacer(modifier = Modifier.weight(1f))
-            
-            // Info section
-            InfoSection()
         }
     }
 }
