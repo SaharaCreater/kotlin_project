@@ -1,6 +1,7 @@
 package com.app.dopp.ui_project
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -240,31 +241,19 @@ private fun GradientActionButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Box(
+    Row(
         modifier = modifier
             .height(48.dp)
             .clip(RoundedCornerShape(14.dp))
             .background(gradient)
-            .then(
-                Modifier.padding(horizontal = 16.dp)
-            ),
-        contentAlignment = Alignment.Center
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        androidx.compose.material3.Surface(
-            onClick = onClick,
-            color = Color.Transparent,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxSize()
-            ) {
-                Icon(icon, null, tint = Color.White, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(6.dp))
-                Text(text, color = Color.White, fontWeight = FontWeight.SemiBold, maxLines = 1)
-            }
-        }
+        Icon(icon, null, tint = Color.White, modifier = Modifier.size(18.dp))
+        Spacer(Modifier.width(6.dp))
+        Text(text, color = Color.White, fontWeight = FontWeight.SemiBold, maxLines = 1)
     }
 }
 

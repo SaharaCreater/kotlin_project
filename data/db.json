@@ -23,6 +23,14 @@
       "password_hash": "$2b$10$cWh3y1gTURpEblo9rjynZeyWHJSX9JYXKzcpwiY6zRxCipNu3GrrS",
       "avatar_color": "#7D5700",
       "created_at": 1778767444836
+    },
+    {
+      "id": "22643550-d52c-4473-801a-dbc5b47eb71c",
+      "email": "check999@test.com",
+      "name": "Check",
+      "password_hash": "$2b$10$R6fhM1VfrpHLWifCDcsGF.fhoNcFKV0REAfNfjnADncWLAC4iTVPq",
+      "avatar_color": "#3B6939",
+      "created_at": 1778769453826
     }
   ],
   "progress": [
