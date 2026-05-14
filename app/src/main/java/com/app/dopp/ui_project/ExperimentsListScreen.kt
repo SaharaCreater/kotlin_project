@@ -24,25 +24,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.app.dopp.physics.ExperimentCategory
 import com.app.dopp.physics.ExperimentType
-import com.app.dopp.ui_project.components.OfflineBanner
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExperimentsListScreen(
     onExperimentSelected: (ExperimentType) -> Unit,
     onBackClick: () -> Unit,
-    isOffline: Boolean = false
+    completedIds: Set<String> = emptySet()
 ) {
     var selectedCategory by remember { mutableStateOf<ExperimentCategory?>(null) }
-    
+
     val filteredExperiments = remember(selectedCategory) {
-        if (selectedCategory == null) {
-            ExperimentType.entries
-        } else {
-            ExperimentType.entries.filter { it.category == selectedCategory }
-        }
+        if (selectedCategory == null) ExperimentType.entries
+        else ExperimentType.entries.filter { it.category == selectedCategory }
     }
-    
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -71,9 +67,6 @@ fun ExperimentsListScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            OfflineBanner(isOffline = isOffline)
-
-            // Category filter chips
             LazyRow(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -103,8 +96,7 @@ fun ExperimentsListScreen(
                     )
                 }
             }
-            
-            // Experiments list
+
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(16.dp),
@@ -114,24 +106,22 @@ fun ExperimentsListScreen(
                     ExperimentCategory.entries.forEach { category ->
                         val categoryExperiments = filteredExperiments.filter { it.category == category }
                         if (categoryExperiments.isNotEmpty()) {
-                            item {
-                                CategoryHeader(category)
-                            }
+                            item { CategoryHeader(category) }
                             items(categoryExperiments) { experiment ->
                                 ExperimentCard(
                                     experiment = experiment,
+                                    isCompleted = completedIds.contains(experiment.name),
                                     onClick = { onExperimentSelected(experiment) }
                                 )
                             }
-                            item {
-                                Spacer(modifier = Modifier.height(8.dp))
-                            }
+                            item { Spacer(modifier = Modifier.height(8.dp)) }
                         }
                     }
                 } else {
                     items(filteredExperiments) { experiment ->
                         ExperimentCard(
                             experiment = experiment,
+                            isCompleted = completedIds.contains(experiment.name),
                             onClick = { onExperimentSelected(experiment) }
                         )
                     }
@@ -179,19 +169,23 @@ private fun CategoryHeader(category: ExperimentCategory) {
 @Composable
 private fun ExperimentCard(
     experiment: ExperimentType,
+    isCompleted: Boolean,
     onClick: () -> Unit
 ) {
     val categoryColor = getCategoryColor(experiment.category)
-    
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = if (isCompleted)
+                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
+            else
+                MaterialTheme.colorScheme.surface
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isCompleted) 0.dp else 2.dp)
     ) {
         Row(
             modifier = Modifier
@@ -221,7 +215,7 @@ private fun ExperimentCard(
                     tint = Color.White
                 )
             }
-            
+
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -238,44 +232,54 @@ private fun ExperimentCard(
                     maxLines = 2
                 )
             }
-            
-            Icon(
-                imageVector = Icons.Default.ChevronRight,
-                contentDescription = "Открыть",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+
+            if (isCompleted) {
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.secondary
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "Завершено",
+                        tint = MaterialTheme.colorScheme.onSecondary,
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .size(18.dp)
+                    )
+                }
+            } else {
+                Icon(
+                    imageVector = Icons.Default.ChevronRight,
+                    contentDescription = "Открыть",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
 
-private fun getCategoryIcon(category: ExperimentCategory): ImageVector {
-    return when (category) {
-        ExperimentCategory.MECHANICS -> Icons.Default.Settings
-        ExperimentCategory.ELECTRICITY -> Icons.Default.Bolt
-        ExperimentCategory.OPTICS -> Icons.Default.Lightbulb
-        ExperimentCategory.THERMODYNAMICS -> Icons.Default.Whatshot
-    }
+private fun getCategoryIcon(category: ExperimentCategory): ImageVector = when (category) {
+    ExperimentCategory.MECHANICS -> Icons.Default.Settings
+    ExperimentCategory.ELECTRICITY -> Icons.Default.Bolt
+    ExperimentCategory.OPTICS -> Icons.Default.Lightbulb
+    ExperimentCategory.THERMODYNAMICS -> Icons.Default.Whatshot
 }
 
-private fun getCategoryColor(category: ExperimentCategory): Color {
-    return when (category) {
-        ExperimentCategory.MECHANICS -> Color(0xFF2196F3)
-        ExperimentCategory.ELECTRICITY -> Color(0xFFFFC107)
-        ExperimentCategory.OPTICS -> Color(0xFF9C27B0)
-        ExperimentCategory.THERMODYNAMICS -> Color(0xFFFF5722)
-    }
+private fun getCategoryColor(category: ExperimentCategory): Color = when (category) {
+    ExperimentCategory.MECHANICS -> Color(0xFF2196F3)
+    ExperimentCategory.ELECTRICITY -> Color(0xFFFFC107)
+    ExperimentCategory.OPTICS -> Color(0xFF9C27B0)
+    ExperimentCategory.THERMODYNAMICS -> Color(0xFFFF5722)
 }
 
-private fun getExperimentIcon(experiment: ExperimentType): ImageVector {
-    return when (experiment) {
-        ExperimentType.PENDULUM -> Icons.Default.SwapVert
-        ExperimentType.FREE_FALL -> Icons.Default.ArrowDownward
-        ExperimentType.COLLISION -> Icons.Default.Compress
-        ExperimentType.ELECTRIC_CIRCUIT -> Icons.Default.Cable
-        ExperimentType.MAGNETIC_FIELD -> Icons.Default.Radar
-        ExperimentType.LIGHT_REFRACTION -> Icons.Default.Flare
-        ExperimentType.LENS -> Icons.Default.CenterFocusWeak
-        ExperimentType.BROWNIAN_MOTION -> Icons.Default.Grain
-        ExperimentType.GAS_EXPANSION -> Icons.Default.Air
-    }
+private fun getExperimentIcon(experiment: ExperimentType): ImageVector = when (experiment) {
+    ExperimentType.PENDULUM -> Icons.Default.SwapVert
+    ExperimentType.FREE_FALL -> Icons.Default.ArrowDownward
+    ExperimentType.COLLISION -> Icons.Default.Compress
+    ExperimentType.ELECTRIC_CIRCUIT -> Icons.Default.Cable
+    ExperimentType.MAGNETIC_FIELD -> Icons.Default.Radar
+    ExperimentType.LIGHT_REFRACTION -> Icons.Default.Flare
+    ExperimentType.LENS -> Icons.Default.CenterFocusWeak
+    ExperimentType.BROWNIAN_MOTION -> Icons.Default.Grain
+    ExperimentType.GAS_EXPANSION -> Icons.Default.Air
 }

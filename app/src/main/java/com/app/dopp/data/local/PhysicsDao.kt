@@ -15,6 +15,9 @@ interface PhysicsDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertExperiments(experiments: List<PhysicsExperiment>)
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertExperimentsIfAbsent(experiments: List<PhysicsExperiment>)
+
     @Query("SELECT * FROM experiments WHERE id = :experimentId")
     suspend fun getExperimentById(experimentId: String): PhysicsExperiment?
 }

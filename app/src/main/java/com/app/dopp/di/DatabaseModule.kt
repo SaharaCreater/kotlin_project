@@ -7,7 +7,9 @@ import com.app.dopp.data.AuthPreferences
 import com.app.dopp.data.ScannerManager
 import com.app.dopp.data.local.AppDatabase
 import com.app.dopp.data.local.AppDatabase.Companion.MIGRATION_1_2
+import com.app.dopp.data.local.AppDatabase.Companion.MIGRATION_2_3
 import com.app.dopp.data.local.PhysicsDao
+import com.app.dopp.data.local.ProgressDao
 import com.app.dopp.data.remote.PhysicsApi
 import dagger.Module
 import dagger.Provides
@@ -71,12 +73,20 @@ object DatabaseModule {
             context,
             AppDatabase::class.java,
             "physics_database"
-        ).addMigrations(MIGRATION_1_2).build()
+        )
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+            .build()
     }
 
     @Provides
     @Singleton
     fun providePhysicsDao(database: AppDatabase): PhysicsDao {
         return database.dao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideProgressDao(database: AppDatabase): ProgressDao {
+        return database.progressDao()
     }
 }

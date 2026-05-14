@@ -37,7 +37,8 @@ import kotlinx.coroutines.delay
 @Composable
 fun ARScreen(
     experimentType: ExperimentType,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onExperimentStarted: () -> Unit = {}
 ) {
     val context = LocalContext.current
     
@@ -64,11 +65,12 @@ fun ARScreen(
     // Simulation engine
     val simulationEngine = remember { SimulationEngine() }
     val renderer = remember { AR3DRenderer(context) }
-    
+
     // Simulation state
     var isRunning by remember { mutableStateOf(false) }
     var isPanelExpanded by remember { mutableStateOf(false) }
     var showInfo by remember { mutableStateOf(true) }
+    var hasStartedOnce by remember { mutableStateOf(false) }
     
     // Parameters state
     var pendulumParams by remember { mutableStateOf(PendulumParameters()) }
@@ -161,6 +163,10 @@ fun ARScreen(
             ExperimentType.GAS_EXPANSION -> {
                 gasExpansionState = simulationEngine.initGasExpansion(gasExpansionParams)
             }
+        }
+        if (!hasStartedOnce) {
+            hasStartedOnce = true
+            onExperimentStarted()
         }
         isRunning = true
     }

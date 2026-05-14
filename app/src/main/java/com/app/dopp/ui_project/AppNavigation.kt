@@ -19,26 +19,22 @@ fun AppNavigation(navController: NavHostController) {
     ) {
         composable(route = "main") {
             val viewModel: PhysicsViewModel = hiltViewModel()
-            val isOffline by viewModel.isOffline.collectAsStateWithLifecycle()
+            val completedCount by viewModel.completedCount.collectAsStateWithLifecycle()
             MainScreen(
-                onExperimentsClick = {
-                    navController.navigate("experiments_list")
-                },
-                isOffline = isOffline
+                onExperimentsClick = { navController.navigate("experiments_list") },
+                completedCount = completedCount
             )
         }
 
         composable(route = "experiments_list") {
             val viewModel: PhysicsViewModel = hiltViewModel()
-            val isOffline by viewModel.isOffline.collectAsStateWithLifecycle()
+            val completedIds by viewModel.completedIds.collectAsStateWithLifecycle()
             ExperimentsListScreen(
                 onExperimentSelected = { experimentType ->
                     navController.navigate("ar/${experimentType.name}")
                 },
-                onBackClick = {
-                    navController.popBackStack()
-                },
-                isOffline = isOffline
+                onBackClick = { navController.popBackStack() },
+                completedIds = completedIds
             )
         }
 
@@ -55,11 +51,12 @@ fun AppNavigation(navController: NavHostController) {
                 ExperimentType.PENDULUM
             }
 
+            val viewModel: PhysicsViewModel = hiltViewModel()
+
             ARScreen(
                 experimentType = experimentType,
-                onBackClick = {
-                    navController.popBackStack()
-                }
+                onBackClick = { navController.popBackStack() },
+                onExperimentStarted = { viewModel.markCompleted(experimentType.name) }
             )
         }
     }

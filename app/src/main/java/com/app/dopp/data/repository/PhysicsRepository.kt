@@ -1,27 +1,40 @@
 package com.app.dopp.data.repository
 
-import com.app.dopp.data.NetworkMonitor
 import com.app.dopp.data.local.PhysicsDao
-import com.app.dopp.data.remote.PhysicsApi
+import com.app.dopp.data.local.ProgressDao
+import com.app.dopp.domain.ExperimentProgress
 import com.app.dopp.domain.PhysicsExperiment
+import com.app.dopp.physics.ExperimentType
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class PhysicsRepository @Inject constructor(
-    private val api: PhysicsApi,
     private val dao: PhysicsDao,
-    val networkMonitor: NetworkMonitor
+    private val progressDao: ProgressDao
 ) {
-    fun getExperimentsFromDb(): Flow<List<PhysicsExperiment>> = dao.getAllExperiments()
+    fun getAllProgress(): Flow<List<ExperimentProgress>> = progressDao.getAllProgress()
 
-    suspend fun refreshExperiments(): Boolean {
-        return try {
-            val remoteData = api.getExperiments()
-            dao.insertExperiments(remoteData)
-            true
-        } catch (e: Exception) {
-            e.printStackTrace()
-            false
+    suspend fun seedLocalExperiments() {
+        val experiments = ExperimentType.entries.map { type ->
+            PhysicsExperiment(
+                id = type.name,
+                name = type.displayName,
+                description = type.description,
+                category = type.category.name
+            )
         }
+        dao.insertExperimentsIfAbsent(experiments)
+    }
+
+    suspend fun markCompleted(experimentId: String) {
+        val current = progressDao.getProgress(experimentId)
+        progressDao.upsertProgress(
+            ExperimentProgress(
+                experimentId = experimentId,
+                isCompleted = true,
+                openCount = (current?.openCount ?: 0) + 1,
+                completedAt = System.currentTimeMillis()
+            )
+        )
     }
 }
