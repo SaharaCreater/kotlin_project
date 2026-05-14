@@ -8,7 +8,9 @@ data class PhysicsExperiment(
     @PrimaryKey val id: String,
     val name: String,
     val description: String,
-    val modelUrl: String, // Ссылка на .glb файл для AR
     val category: String,
-    val title: String
+    val modelUrl: String? = null,
+    val title: String? = null,
+    val icon: String? = null,
+    val difficulty: String? = null
 )

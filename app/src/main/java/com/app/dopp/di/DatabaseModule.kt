@@ -22,8 +22,11 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideRetrofit(): Retrofit {
+        val baseUrl = System.getenv("REPLIT_DEV_DOMAIN")
+            ?.let { "https://$it/" }
+            ?: "http://10.0.2.2:5000/"
         return Retrofit.Builder()
-            .baseUrl("https://raw.githubusercontent.com/your_username/your_repo/main/")
+            .baseUrl(baseUrl)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }

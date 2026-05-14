@@ -1,16 +1,10 @@
 package com.app.dopp.ar
 
 import android.content.Context
-import android.graphics.Color
-import android.opengl.Matrix
 import com.app.dopp.physics.*
-import com.google.ar.core.Anchor
-import io.github.sceneview.ar.node.AnchorNode
 import io.github.sceneview.math.Position
 import io.github.sceneview.math.Rotation
 import io.github.sceneview.math.Scale
-import io.github.sceneview.node.ModelNode
-import io.github.sceneview.node.Node
 import kotlin.math.*
 
 /**
