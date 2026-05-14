@@ -38,7 +38,6 @@ loadDB();
 // ===== Middleware =====
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'web')));
 
 function authMiddleware(req, res, next) {
   const auth = req.headers.authorization;
@@ -163,10 +162,8 @@ app.get('/api/categories', (req, res) => {
   ]);
 });
 
-// ===== SPA fallback =====
 app.use((req, res) => {
-  if (req.path.startsWith('/api')) return res.status(404).json({ error: 'Not found' });
-  res.sendFile(path.join(__dirname, 'web', 'index.html'));
+  res.status(404).json({ error: 'Not found' });
 });
 
 app.listen(PORT, '0.0.0.0', () => {

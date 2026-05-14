@@ -2,8 +2,10 @@ package com.app.dopp.ui_project
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -17,8 +19,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.app.dopp.physics.ExperimentCategory
 import com.app.dopp.physics.ExperimentType
+import com.app.dopp.ui.theme.Sky500
+import com.app.dopp.ui.theme.Violet600
+import com.app.dopp.ui.theme.Violet800
 
 private val TOTAL_EXPERIMENTS = ExperimentType.entries.size
 
@@ -32,14 +38,41 @@ fun MainScreen(
 ) {
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
+            TopAppBar(
                 title = {
-                    Text(
-                        text = if (userName != null) "Привет, $userName!" else "Физика в AR",
-                        fontWeight = FontWeight.Bold
-                    )
+                    Column {
+                        Text(
+                            text = if (userName != null) "Привет, $userName!" else "Добро пожаловать!",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
+                        Text(
+                            text = "DoPP — Физика в AR",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                actions = {
+                    Box(
+                        modifier = Modifier
+                            .padding(end = 12.dp)
+                            .size(38.dp)
+                            .clip(CircleShape)
+                            .background(
+                                Brush.linearGradient(listOf(Violet800, Sky500))
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Default.Science,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
             )
@@ -49,8 +82,9 @@ fun MainScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             HeroCard(onExperimentsClick = onExperimentsClick)
 
@@ -62,39 +96,54 @@ fun MainScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Button(
+                GradientActionButton(
+                    text = "Эксперименты",
+                    icon = Icons.Default.Science,
+                    gradient = Brush.horizontalGradient(listOf(Violet800, Violet600)),
                     onClick = onExperimentsClick,
                     modifier = Modifier.weight(1f)
-                ) {
-                    Icon(Icons.Default.Science, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("Все эксперименты", maxLines = 1)
-                }
+                )
                 OutlinedButton(
                     onClick = onScannerClick,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(48.dp),
+                    shape = RoundedCornerShape(14.dp)
                 ) {
-                    Icon(Icons.Default.QrCodeScanner, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
+                    Icon(Icons.Default.QrCodeScanner, null, Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
                     Text("QR Сканер", maxLines = 1)
                 }
             }
 
-            Text(
-                text = "Категории экспериментов",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Разделы",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "${ExperimentType.entries.size} экспериментов",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
 
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     CategoryCard(
                         category = ExperimentCategory.MECHANICS,
                         icon = Icons.Default.Settings,
-                        color = Color(0xFF2196F3),
+                        gradient = Brush.linearGradient(
+                            listOf(Color(0xFF1D4ED8), Color(0xFF3B82F6))
+                        ),
                         experimentsCount = 3,
                         modifier = Modifier.weight(1f),
                         onClick = onExperimentsClick
@@ -102,7 +151,9 @@ fun MainScreen(
                     CategoryCard(
                         category = ExperimentCategory.ELECTRICITY,
                         icon = Icons.Default.Bolt,
-                        color = Color(0xFFFFC107),
+                        gradient = Brush.linearGradient(
+                            listOf(Color(0xFFD97706), Color(0xFFFBBF24))
+                        ),
                         experimentsCount = 2,
                         modifier = Modifier.weight(1f),
                         onClick = onExperimentsClick
@@ -110,12 +161,14 @@ fun MainScreen(
                 }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     CategoryCard(
                         category = ExperimentCategory.OPTICS,
                         icon = Icons.Default.Lightbulb,
-                        color = Color(0xFF9C27B0),
+                        gradient = Brush.linearGradient(
+                            listOf(Violet800, Violet600)
+                        ),
                         experimentsCount = 2,
                         modifier = Modifier.weight(1f),
                         onClick = onExperimentsClick
@@ -123,7 +176,9 @@ fun MainScreen(
                     CategoryCard(
                         category = ExperimentCategory.THERMODYNAMICS,
                         icon = Icons.Default.Whatshot,
-                        color = Color(0xFFFF5722),
+                        gradient = Brush.linearGradient(
+                            listOf(Color(0xFFDC2626), Color(0xFFF87171))
+                        ),
                         experimentsCount = 2,
                         modifier = Modifier.weight(1f),
                         onClick = onExperimentsClick
@@ -131,9 +186,84 @@ fun MainScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+                ),
+                elevation = CardDefaults.cardElevation(0.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(
+                                Brush.linearGradient(listOf(Violet600, Sky500))
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.Info, null, tint = Color.White, modifier = Modifier.size(18.dp))
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Как пользоваться",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = "Выберите эксперимент и наведите камеру на поверхность",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
 
-            InfoSection()
+            Spacer(Modifier.height(8.dp))
+        }
+    }
+}
+
+@Composable
+private fun GradientActionButton(
+    text: String,
+    icon: ImageVector,
+    gradient: Brush,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .height(48.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(gradient)
+            .then(
+                Modifier.padding(horizontal = 16.dp)
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        androidx.compose.material3.Surface(
+            onClick = onClick,
+            color = Color.Transparent,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Icon(icon, null, tint = Color.White, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(text, color = Color.White, fontWeight = FontWeight.SemiBold, maxLines = 1)
+            }
         }
     }
 }
@@ -143,61 +273,66 @@ private fun ProgressCard(completed: Int, total: Int) {
     val fraction = completed.toFloat() / total.toFloat()
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
-        )
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(2.dp)
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+                .background(
+                    Brush.horizontalGradient(
+                        listOf(Violet800.copy(alpha = 0.08f), Sky500.copy(alpha = 0.08f))
+                    )
+                )
+                .padding(20.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.EmojiEvents,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                        modifier = Modifier.size(20.dp)
-                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.EmojiEvents,
+                            null,
+                            tint = Violet800,
+                            modifier = Modifier.size(22.dp)
+                        )
+                        Text(
+                            "Прогресс",
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleSmall,
+                            color = Violet800
+                        )
+                    }
                     Text(
-                        text = "Прогресс",
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                        "$completed / $total",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Violet800
                     )
                 }
+                LinearProgressIndicator(
+                    progress = { fraction },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(8.dp)
+                        .clip(RoundedCornerShape(4.dp)),
+                    color = Violet600,
+                    trackColor = Violet800.copy(alpha = 0.12f)
+                )
                 Text(
-                    text = "$completed / $total",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                    text = if (completed == total) "Все эксперименты завершены!"
+                    else "Пройдено $completed из $total экспериментов",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            LinearProgressIndicator(
-                progress = { fraction },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(8.dp)
-                    .clip(RoundedCornerShape(4.dp)),
-                color = MaterialTheme.colorScheme.secondary,
-                trackColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f)
-            )
-            Text(
-                text = if (completed == total) "Все эксперименты завершены! 🎉"
-                       else "Пройдено $completed из $total экспериментов",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
-            )
         }
     }
 }
@@ -207,80 +342,72 @@ private fun HeroCard(onExperimentsClick: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        )
+        elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    brush = Brush.linearGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
+                    Brush.linearGradient(
+                        listOf(
+                            Color(0xFF3B0764),
+                            Violet800,
+                            Color(0xFF0369A1)
                         )
                     )
                 )
                 .padding(24.dp)
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    Surface(
-                        shape = CircleShape,
-                        color = Color.White.copy(alpha = 0.2f)
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color.White.copy(alpha = 0.18f)),
+                        contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Science,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .padding(12.dp)
-                                .size(32.dp),
+                            Icons.Default.Science,
+                            null,
+                            modifier = Modifier.size(32.dp),
                             tint = Color.White
                         )
                     }
                     Column {
                         Text(
-                            text = "Изучайте физику",
+                            "Изучайте физику",
                             style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.ExtraBold,
                             color = Color.White
                         )
                         Text(
-                            text = "в дополненной реальности",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = Color.White.copy(alpha = 0.9f)
+                            "в дополненной реальности",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White.copy(alpha = 0.8f)
                         )
                     }
                 }
-
                 Text(
-                    text = "9 интерактивных экспериментов с настраиваемыми параметрами и визуализацией в реальном времени",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White.copy(alpha = 0.85f)
+                    "9 интерактивных экспериментов с настраиваемыми параметрами и визуализацией в реальном времени",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.White.copy(alpha = 0.75f),
+                    lineHeight = 18.sp
                 )
-
                 Button(
                     onClick = onExperimentsClick,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.White,
-                        contentColor = MaterialTheme.colorScheme.primary
+                        contentColor = Violet800
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.PlayArrow,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Начать эксперименты",
-                        fontWeight = FontWeight.SemiBold
-                    )
+                    Icon(Icons.Default.PlayArrow, null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("Начать", fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -292,7 +419,7 @@ private fun HeroCard(onExperimentsClick: () -> Unit) {
 private fun CategoryCard(
     category: ExperimentCategory,
     icon: ImageVector,
-    color: Color,
+    gradient: Brush,
     experimentsCount: Int,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
@@ -300,80 +427,35 @@ private fun CategoryCard(
     Card(
         onClick = onClick,
         modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Box(
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(44.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(color.copy(alpha = 0.15f)),
+                    .background(gradient),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp),
-                    tint = color
-                )
+                Icon(icon, null, modifier = Modifier.size(22.dp), tint = Color.White)
             }
-
-            Text(
-                text = category.displayName,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
-                textAlign = TextAlign.Center
-            )
-
-            Text(
-                text = "$experimentsCount эксп.",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-@Composable
-private fun InfoSection() {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.Info,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Column(modifier = Modifier.weight(1f)) {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
-                    text = "Как использовать",
+                    text = category.displayName,
                     style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "Выберите эксперимент, наведите камеру на поверхность и нажмите для запуска симуляции",
-                    style = MaterialTheme.typography.bodySmall,
+                    text = "$experimentsCount экспер.",
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }

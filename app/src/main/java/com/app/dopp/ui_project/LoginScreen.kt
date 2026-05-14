@@ -1,22 +1,27 @@
 package com.app.dopp.ui_project
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -25,8 +30,14 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.app.dopp.ui.theme.DarkBg
+import com.app.dopp.ui.theme.DarkSurface
+import com.app.dopp.ui.theme.Sky500
+import com.app.dopp.ui.theme.Violet600
+import com.app.dopp.ui.theme.Violet800
 
 @Composable
 fun LoginScreen(
@@ -34,7 +45,7 @@ fun LoginScreen(
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     val authState by viewModel.authState.collectAsStateWithLifecycle()
-    val error by viewModel.error.collectAsStateWithLifecycle()
+    val error     by viewModel.error.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
     LaunchedEffect(authState) {
@@ -44,223 +55,330 @@ fun LoginScreen(
     var selectedTab by remember { mutableIntStateOf(0) }
     val focusManager = LocalFocusManager.current
 
-    var loginEmail by remember { mutableStateOf("") }
+    var loginEmail    by remember { mutableStateOf("") }
     var loginPassword by remember { mutableStateOf("") }
-    var loginPasswordVisible by remember { mutableStateOf(false) }
+    var loginPassVis  by remember { mutableStateOf(false) }
 
-    var regName by remember { mutableStateOf("") }
-    var regEmail by remember { mutableStateOf("") }
+    var regName     by remember { mutableStateOf("") }
+    var regEmail    by remember { mutableStateOf("") }
     var regPassword by remember { mutableStateOf("") }
-    var regPasswordVisible by remember { mutableStateOf(false) }
+    var regPassVis  by remember { mutableStateOf(false) }
 
     LaunchedEffect(selectedTab) { viewModel.clearError() }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .imePadding()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .background(
+                Brush.verticalGradient(listOf(DarkBg, DarkSurface, Color(0xFF1A0E3D)))
+            )
     ) {
-        Spacer(modifier = Modifier.height(48.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .imePadding()
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(Modifier.height(72.dp))
 
-        Icon(
-            imageVector = Icons.Default.Person,
-            contentDescription = null,
-            modifier = Modifier.size(64.dp),
-            tint = MaterialTheme.colorScheme.primary
-        )
+            Box(
+                modifier = Modifier
+                    .size(96.dp)
+                    .clip(RoundedCornerShape(28.dp))
+                    .background(
+                        Brush.linearGradient(listOf(Violet800, Violet600, Sky500))
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Default.Science,
+                    contentDescription = null,
+                    modifier = Modifier.size(52.dp),
+                    tint = Color.White
+                )
+            }
 
-        Spacer(modifier = Modifier.height(12.dp))
+            Spacer(Modifier.height(20.dp))
 
-        Text(
-            text = "DoPP — Физика в AR",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Text(
-            text = "Интерактивные эксперименты по физике",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        TabRow(selectedTabIndex = selectedTab) {
-            Tab(
-                selected = selectedTab == 0,
-                onClick = { selectedTab = 0 },
-                text = { Text("Войти") }
+            Text(
+                text = "DoPP",
+                fontSize = 40.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color.White
             )
-            Tab(
-                selected = selectedTab == 1,
-                onClick = { selectedTab = 1 },
-                text = { Text("Регистрация") }
+            Text(
+                text = "Физика в дополненной реальности",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White.copy(alpha = 0.6f),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 40.dp)
             )
-        }
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(Modifier.height(44.dp))
 
-        AnimatedVisibility(visible = error != null) {
             Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer
-                )
-            ) {
-                Text(
-                    text = error ?: "",
-                    modifier = Modifier.padding(12.dp),
-                    color = MaterialTheme.colorScheme.onErrorContainer,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-        }
-
-        if (selectedTab == 0) {
-            OutlinedTextField(
-                value = loginEmail,
-                onValueChange = { loginEmail = it },
-                label = { Text("Email") },
-                leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Email,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
-                singleLine = true
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            OutlinedTextField(
-                value = loginPassword,
-                onValueChange = { loginPassword = it },
-                label = { Text("Пароль") },
-                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
-                trailingIcon = {
-                    IconButton(onClick = { loginPasswordVisible = !loginPasswordVisible }) {
-                        Icon(
-                            if (loginPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                            contentDescription = null
-                        )
-                    }
-                },
-                visualTransformation = if (loginPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(onDone = {
-                    focusManager.clearFocus()
-                    viewModel.login(loginEmail, loginPassword)
-                }),
-                singleLine = true
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Button(
-                onClick = { viewModel.login(loginEmail, loginPassword) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
-                enabled = !isLoading && loginEmail.isNotBlank() && loginPassword.isNotBlank()
+                    .padding(horizontal = 20.dp),
+                shape = RoundedCornerShape(28.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(0.dp)
             ) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                } else {
-                    Text("Войти", fontWeight = FontWeight.SemiBold)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 24.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(Color(0xFFF3F0FF)),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        listOf("Войти", "Регистрация").forEachIndexed { idx, title ->
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(4.dp)
+                                    .clip(RoundedCornerShape(11.dp))
+                                    .background(
+                                        if (selectedTab == idx)
+                                            Brush.horizontalGradient(listOf(Violet800, Violet600))
+                                        else
+                                            Brush.horizontalGradient(
+                                                listOf(Color.Transparent, Color.Transparent)
+                                            )
+                                    )
+                                    .clickable { selectedTab = idx }
+                                    .padding(vertical = 11.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = title,
+                                    fontWeight = if (selectedTab == idx) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (selectedTab == idx) Color.White else Color(0xFF6B7280),
+                                    fontSize = 14.sp
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(Modifier.height(20.dp))
+
+                    AnimatedVisibility(visible = error != null, enter = fadeIn(), exit = fadeOut()) {
+                        Column {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(Color(0xFFFFE4E6))
+                                    .padding(12.dp)
+                            ) {
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        Icons.Default.Error,
+                                        contentDescription = null,
+                                        tint = Color(0xFFE11D48),
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Text(
+                                        text = error ?: "",
+                                        color = Color(0xFF881337),
+                                        fontSize = 13.sp
+                                    )
+                                }
+                            }
+                            Spacer(Modifier.height(16.dp))
+                        }
+                    }
+
+                    if (selectedTab == 0) {
+                        AuthField(
+                            value = loginEmail,
+                            onValueChange = { loginEmail = it },
+                            label = "Email",
+                            icon = Icons.Default.Email,
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Next,
+                            onIme = { focusManager.moveFocus(FocusDirection.Down) }
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        AuthPasswordField(
+                            value = loginPassword,
+                            onValueChange = { loginPassword = it },
+                            label = "Пароль",
+                            visible = loginPassVis,
+                            onToggle = { loginPassVis = !loginPassVis },
+                            imeAction = ImeAction.Done,
+                            onIme = {
+                                focusManager.clearFocus()
+                                viewModel.login(loginEmail, loginPassword)
+                            }
+                        )
+                        Spacer(Modifier.height(24.dp))
+                        GradientButton(
+                            text = "Войти",
+                            onClick = { viewModel.login(loginEmail, loginPassword) },
+                            isLoading = isLoading,
+                            enabled = !isLoading && loginEmail.isNotBlank() && loginPassword.isNotBlank(),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    } else {
+                        AuthField(
+                            value = regName,
+                            onValueChange = { regName = it },
+                            label = "Имя",
+                            icon = Icons.Default.Person,
+                            imeAction = ImeAction.Next,
+                            onIme = { focusManager.moveFocus(FocusDirection.Down) }
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        AuthField(
+                            value = regEmail,
+                            onValueChange = { regEmail = it },
+                            label = "Email",
+                            icon = Icons.Default.Email,
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Next,
+                            onIme = { focusManager.moveFocus(FocusDirection.Down) }
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        AuthPasswordField(
+                            value = regPassword,
+                            onValueChange = { regPassword = it },
+                            label = "Пароль",
+                            visible = regPassVis,
+                            onToggle = { regPassVis = !regPassVis },
+                            imeAction = ImeAction.Done,
+                            onIme = {
+                                focusManager.clearFocus()
+                                viewModel.register(regName, regEmail, regPassword)
+                            }
+                        )
+                        Spacer(Modifier.height(24.dp))
+                        GradientButton(
+                            text = "Зарегистрироваться",
+                            onClick = { viewModel.register(regName, regEmail, regPassword) },
+                            isLoading = isLoading,
+                            enabled = !isLoading && regName.isNotBlank() && regEmail.isNotBlank() && regPassword.isNotBlank(),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
                 }
             }
+
+            Spacer(Modifier.height(48.dp))
+        }
+    }
+}
+
+@Composable
+private fun AuthField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    icon: ImageVector,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    imeAction: ImeAction = ImeAction.Next,
+    onIme: () -> Unit = {}
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        leadingIcon = { Icon(icon, contentDescription = null) },
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = imeAction),
+        keyboardActions = KeyboardActions(onNext = { onIme() }, onDone = { onIme() }),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor     = Violet800,
+            focusedLabelColor      = Violet800,
+            focusedLeadingIconColor = Violet800
+        )
+    )
+}
+
+@Composable
+private fun AuthPasswordField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    visible: Boolean,
+    onToggle: () -> Unit,
+    imeAction: ImeAction = ImeAction.Done,
+    onIme: () -> Unit = {}
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+        trailingIcon = {
+            IconButton(onClick = onToggle) {
+                Icon(
+                    if (visible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                    contentDescription = null
+                )
+            }
+        },
+        visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Password,
+            imeAction = imeAction
+        ),
+        keyboardActions = KeyboardActions(onDone = { onIme() }),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor      = Violet800,
+            focusedLabelColor       = Violet800,
+            focusedLeadingIconColor = Violet800
+        )
+    )
+}
+
+@Composable
+fun GradientButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    isLoading: Boolean = false
+) {
+    Box(
+        modifier = modifier
+            .height(52.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(
+                if (enabled)
+                    Brush.horizontalGradient(listOf(Violet800, Violet600, Sky500))
+                else
+                    Brush.horizontalGradient(listOf(Color(0xFFD1D5DB), Color(0xFFD1D5DB)))
+            )
+            .clickable(enabled = enabled && !isLoading, onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(22.dp),
+                strokeWidth = 2.5.dp,
+                color = Color.White
+            )
         } else {
-            OutlinedTextField(
-                value = regName,
-                onValueChange = { regName = it },
-                label = { Text("Имя") },
-                leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
-                singleLine = true
+            Text(
+                text = text,
+                color = if (enabled) Color.White else Color(0xFF9CA3AF),
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp
             )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            OutlinedTextField(
-                value = regEmail,
-                onValueChange = { regEmail = it },
-                label = { Text("Email") },
-                leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Email,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
-                singleLine = true
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            OutlinedTextField(
-                value = regPassword,
-                onValueChange = { regPassword = it },
-                label = { Text("Пароль") },
-                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
-                trailingIcon = {
-                    IconButton(onClick = { regPasswordVisible = !regPasswordVisible }) {
-                        Icon(
-                            if (regPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                            contentDescription = null
-                        )
-                    }
-                },
-                visualTransformation = if (regPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(onDone = {
-                    focusManager.clearFocus()
-                    viewModel.register(regName, regEmail, regPassword)
-                }),
-                singleLine = true
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Button(
-                onClick = { viewModel.register(regName, regEmail, regPassword) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                enabled = !isLoading && regName.isNotBlank() && regEmail.isNotBlank() && regPassword.isNotBlank()
-            ) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                } else {
-                    Text("Зарегистрироваться", fontWeight = FontWeight.SemiBold)
-                }
-            }
         }
-
-        Spacer(modifier = Modifier.height(48.dp))
     }
 }

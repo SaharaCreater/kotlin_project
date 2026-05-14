@@ -23,6 +23,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.app.dopp.physics.ExperimentCategory
 import com.app.dopp.physics.ExperimentType
+import com.app.dopp.ui.theme.Violet600
+import com.app.dopp.ui.theme.Violet800
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,7 +33,7 @@ fun ExperimentsListScreen(
     completedIds: Set<String> = emptySet()
 ) {
     var selectedCategory by remember { mutableStateOf<ExperimentCategory?>(null) }
-    var searchQuery by remember { mutableStateOf("") }
+    var searchQuery      by remember { mutableStateOf("") }
 
     val filteredExperiments = remember(selectedCategory, searchQuery) {
         val base = if (selectedCategory == null) ExperimentType.entries
@@ -46,12 +48,7 @@ fun ExperimentsListScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = "Эксперименты",
-                        fontWeight = FontWeight.SemiBold
-                    )
-                },
+                title = { Text("Эксперименты", fontWeight = FontWeight.Bold) },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
@@ -63,23 +60,38 @@ fun ExperimentsListScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            OutlinedTextField(
+            TextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 placeholder = { Text("Поиск экспериментов...") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                leadingIcon = {
+                    Icon(
+                        Icons.Default.Search,
+                        null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                },
                 trailingIcon = {
                     if (searchQuery.isNotEmpty()) {
                         IconButton(onClick = { searchQuery = "" }) {
-                            Icon(Icons.Default.Close, contentDescription = "Очистить")
+                            Icon(Icons.Default.Close, null)
                         }
                     }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .clip(RoundedCornerShape(28.dp)),
                 singleLine = true,
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(28.dp)
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor   = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    focusedIndicatorColor   = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor  = Color.Transparent,
+                    focusedTextColor        = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor      = MaterialTheme.colorScheme.onSurface,
+                )
             )
 
             LazyRow(
@@ -94,28 +106,39 @@ fun ExperimentsListScreen(
                         onClick = { selectedCategory = null },
                         label = { Text("Все") },
                         leadingIcon = if (selectedCategory == null) {
-                            { Icon(Icons.Default.Check, contentDescription = null, Modifier.size(18.dp)) }
-                        } else null
+                            { Icon(Icons.Default.Check, null, Modifier.size(16.dp)) }
+                        } else null,
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = Violet800,
+                            selectedLabelColor = Color.White,
+                            selectedLeadingIconColor = Color.White
+                        )
                     )
                 }
                 items(ExperimentCategory.entries) { category ->
+                    val catColor = getCategoryColor(category)
                     FilterChip(
                         selected = selectedCategory == category,
-                        onClick = { selectedCategory = category },
+                        onClick = { selectedCategory = if (selectedCategory == category) null else category },
                         label = { Text(category.displayName) },
                         leadingIcon = if (selectedCategory == category) {
-                            { Icon(Icons.Default.Check, contentDescription = null, Modifier.size(18.dp)) }
+                            { Icon(Icons.Default.Check, null, Modifier.size(16.dp)) }
                         } else {
-                            { Icon(getCategoryIcon(category), contentDescription = null, Modifier.size(18.dp)) }
-                        }
+                            { Icon(getCategoryIcon(category), null, Modifier.size(16.dp)) }
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = catColor,
+                            selectedLabelColor = Color.White,
+                            selectedLeadingIconColor = Color.White
+                        )
                     )
                 }
             }
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 if (selectedCategory == null) {
                     ExperimentCategory.entries.forEach { category ->
@@ -129,7 +152,7 @@ fun ExperimentsListScreen(
                                     onClick = { onExperimentSelected(experiment) }
                                 )
                             }
-                            item { Spacer(modifier = Modifier.height(8.dp)) }
+                            item { Spacer(Modifier.height(4.dp)) }
                         }
                     }
                 } else {
@@ -155,25 +178,27 @@ private fun CategoryHeader(category: ExperimentCategory) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Surface(
-            shape = CircleShape,
-            color = getCategoryColor(category).copy(alpha = 0.15f)
+        Box(
+            modifier = Modifier
+                .size(38.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(
+                    Brush.linearGradient(
+                        listOf(getCategoryColor(category), getCategoryColor(category).copy(0.6f))
+                    )
+                ),
+            contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = getCategoryIcon(category),
-                contentDescription = null,
-                modifier = Modifier.padding(8.dp),
-                tint = getCategoryColor(category)
-            )
+            Icon(getCategoryIcon(category), null, tint = Color.White, modifier = Modifier.size(20.dp))
         }
         Column {
             Text(
-                text = category.displayName,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
+                category.displayName,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold
             )
             Text(
-                text = category.description,
+                category.description,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -196,105 +221,118 @@ private fun ExperimentCard(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (isCompleted)
-                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
             else
-                MaterialTheme.colorScheme.surface
+                Color.White
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (isCompleted) 0.dp else 2.dp)
+        elevation = CardDefaults.cardElevation(if (isCompleted) 0.dp else 1.dp)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(56.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .width(4.dp)
+                    .height(80.dp)
                     .background(
-                        brush = Brush.linearGradient(
-                            colors = listOf(
-                                categoryColor.copy(alpha = 0.8f),
-                                categoryColor.copy(alpha = 0.5f)
-                            )
+                        Brush.verticalGradient(
+                            listOf(categoryColor, categoryColor.copy(0.4f))
                         )
-                    ),
-                contentAlignment = Alignment.Center
+                    )
+            )
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 14.dp, vertical = 14.dp),
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = getExperimentIcon(experiment),
-                    contentDescription = null,
-                    modifier = Modifier.size(28.dp),
-                    tint = Color.White
-                )
-            }
-
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    text = experiment.displayName,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    text = experiment.description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2
-                )
-            }
-
-            if (isCompleted) {
-                Surface(
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.secondary
+                Box(
+                    modifier = Modifier
+                        .size(52.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(
+                            Brush.linearGradient(
+                                listOf(categoryColor, categoryColor.copy(0.65f))
+                            )
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = "Завершено",
-                        tint = MaterialTheme.colorScheme.onSecondary,
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .size(18.dp)
+                        getExperimentIcon(experiment),
+                        null,
+                        modifier = Modifier.size(26.dp),
+                        tint = Color.White
                     )
                 }
-            } else {
-                Icon(
-                    imageVector = Icons.Default.ChevronRight,
-                    contentDescription = "Открыть",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(3.dp)
+                ) {
+                    Text(
+                        experiment.displayName,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        experiment.description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2
+                    )
+                }
+                if (isCompleted) {
+                    Box(
+                        modifier = Modifier
+                            .size(28.dp)
+                            .clip(CircleShape)
+                            .background(
+                                Brush.linearGradient(listOf(Violet800, Violet600))
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Default.Check,
+                            null,
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                } else {
+                    Icon(
+                        Icons.Default.ChevronRight,
+                        null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }
 }
 
 private fun getCategoryIcon(category: ExperimentCategory): ImageVector = when (category) {
-    ExperimentCategory.MECHANICS -> Icons.Default.Settings
-    ExperimentCategory.ELECTRICITY -> Icons.Default.Bolt
-    ExperimentCategory.OPTICS -> Icons.Default.Lightbulb
+    ExperimentCategory.MECHANICS      -> Icons.Default.Settings
+    ExperimentCategory.ELECTRICITY    -> Icons.Default.Bolt
+    ExperimentCategory.OPTICS         -> Icons.Default.Lightbulb
     ExperimentCategory.THERMODYNAMICS -> Icons.Default.Whatshot
 }
 
 private fun getCategoryColor(category: ExperimentCategory): Color = when (category) {
-    ExperimentCategory.MECHANICS -> Color(0xFF2196F3)
-    ExperimentCategory.ELECTRICITY -> Color(0xFFFFC107)
-    ExperimentCategory.OPTICS -> Color(0xFF9C27B0)
-    ExperimentCategory.THERMODYNAMICS -> Color(0xFFFF5722)
+    ExperimentCategory.MECHANICS      -> Color(0xFF2563EB)
+    ExperimentCategory.ELECTRICITY    -> Color(0xFFD97706)
+    ExperimentCategory.OPTICS         -> Color(0xFF7C3AED)
+    ExperimentCategory.THERMODYNAMICS -> Color(0xFFDC2626)
 }
 
 private fun getExperimentIcon(experiment: ExperimentType): ImageVector = when (experiment) {
-    ExperimentType.PENDULUM -> Icons.Default.SwapVert
-    ExperimentType.FREE_FALL -> Icons.Default.ArrowDownward
-    ExperimentType.COLLISION -> Icons.Default.Compress
+    ExperimentType.PENDULUM        -> Icons.Default.SwapVert
+    ExperimentType.FREE_FALL       -> Icons.Default.ArrowDownward
+    ExperimentType.COLLISION       -> Icons.Default.Compress
     ExperimentType.ELECTRIC_CIRCUIT -> Icons.Default.Cable
-    ExperimentType.MAGNETIC_FIELD -> Icons.Default.Radar
+    ExperimentType.MAGNETIC_FIELD  -> Icons.Default.Radar
     ExperimentType.LIGHT_REFRACTION -> Icons.Default.Flare
-    ExperimentType.LENS -> Icons.Default.CenterFocusWeak
+    ExperimentType.LENS            -> Icons.Default.CenterFocusWeak
     ExperimentType.BROWNIAN_MOTION -> Icons.Default.Grain
-    ExperimentType.GAS_EXPANSION -> Icons.Default.Air
+    ExperimentType.GAS_EXPANSION   -> Icons.Default.Air
 }

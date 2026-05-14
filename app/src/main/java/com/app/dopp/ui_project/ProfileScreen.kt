@@ -13,13 +13,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.app.dopp.physics.ExperimentCategory
+import com.app.dopp.ui.theme.Sky500
+import com.app.dopp.ui.theme.Violet600
+import com.app.dopp.ui.theme.Violet800
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,17 +33,17 @@ fun ProfileScreen(
     authViewModel: AuthViewModel = hiltViewModel(),
     physicsViewModel: PhysicsViewModel = hiltViewModel()
 ) {
-    val authState by authViewModel.authState.collectAsStateWithLifecycle()
-    val completedCount by physicsViewModel.completedCount.collectAsStateWithLifecycle()
-    val totalRunCount by physicsViewModel.totalRunCount.collectAsStateWithLifecycle()
+    val authState         by authViewModel.authState.collectAsStateWithLifecycle()
+    val completedCount    by physicsViewModel.completedCount.collectAsStateWithLifecycle()
+    val totalRunCount     by physicsViewModel.totalRunCount.collectAsStateWithLifecycle()
     val progressByCategory by physicsViewModel.progressByCategory.collectAsStateWithLifecycle()
-    val isLoading by authViewModel.isLoading.collectAsStateWithLifecycle()
+    val isLoading         by authViewModel.isLoading.collectAsStateWithLifecycle()
 
     val user = (authState as? AuthState.Authenticated)?.user
 
-    var showEditDialog by remember { mutableStateOf(false) }
+    var showEditDialog   by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
-    var editName by remember(user?.name) { mutableStateOf(user?.name ?: "") }
+    var editName         by remember(user?.name) { mutableStateOf(user?.name ?: "") }
 
     val avatarColor = remember(user?.avatar_color) {
         try { Color(android.graphics.Color.parseColor(user?.avatar_color ?: "#6750A4")) }
@@ -56,7 +61,7 @@ fun ProfileScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Профиль", fontWeight = FontWeight.Bold) },
+                title = { Text("Мой профиль", fontWeight = FontWeight.Bold) },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
@@ -68,56 +73,79 @@ fun ProfileScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
+                shape = RoundedCornerShape(24.dp),
+                elevation = CardDefaults.cardElevation(0.dp)
             ) {
-                Row(
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(20.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        .background(
+                            Brush.linearGradient(
+                                listOf(
+                                    Color(0xFF3B0764),
+                                    Violet800,
+                                    avatarColor.copy(alpha = 0.85f)
+                                )
+                            )
+                        )
+                        .padding(24.dp)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(64.dp)
-                            .clip(CircleShape)
-                            .background(avatarColor),
-                        contentAlignment = Alignment.Center
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Text(
-                            text = initials,
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                    }
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = user?.name ?: "—",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                        Text(
-                            text = user?.email ?: "",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                        )
-                    }
-                    IconButton(onClick = { showEditDialog = true }) {
-                        Icon(
-                            Icons.Default.Edit,
-                            contentDescription = "Изменить имя",
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                        Box(
+                            modifier = Modifier
+                                .size(76.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    Brush.linearGradient(listOf(Color.White.copy(0.9f), Sky500))
+                                )
+                                .padding(3.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(CircleShape)
+                                    .background(avatarColor),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    initials,
+                                    fontSize = 26.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = Color.White
+                                )
+                            }
+                        }
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                user?.name ?: "—",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Text(
+                                user?.email ?: "",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.White.copy(alpha = 0.7f)
+                            )
+                        }
+                        IconButton(
+                            onClick = { showEditDialog = true },
+                            modifier = Modifier
+                                .size(38.dp)
+                                .clip(CircleShape)
+                                .background(Color.White.copy(alpha = 0.18f))
+                        ) {
+                            Icon(Icons.Default.Edit, null, tint = Color.White, modifier = Modifier.size(18.dp))
+                        }
                     }
                 }
             }
@@ -131,89 +159,119 @@ fun ProfileScreen(
                     icon = Icons.Default.EmojiEvents,
                     value = "$completedCount / 9",
                     label = "Пройдено",
-                    color = MaterialTheme.colorScheme.secondary
+                    gradient = Brush.linearGradient(listOf(Violet800, Violet600))
                 )
                 StatCard(
                     modifier = Modifier.weight(1f),
                     icon = Icons.Default.PlayCircle,
                     value = "$totalRunCount",
                     label = "Запусков",
-                    color = Color(0xFF2196F3)
+                    gradient = Brush.linearGradient(listOf(Color(0xFF0369A1), Sky500))
                 )
             }
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp)
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(1.dp)
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
                     Text(
-                        text = "Прогресс по разделам",
+                        "Прогресс по разделам",
                         style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.Bold
                     )
-                    val categoryColors = mapOf(
-                        ExperimentCategory.MECHANICS to Color(0xFF2196F3),
-                        ExperimentCategory.ELECTRICITY to Color(0xFFFFC107),
-                        ExperimentCategory.OPTICS to Color(0xFF9C27B0),
-                        ExperimentCategory.THERMODYNAMICS to Color(0xFFFF5722)
+                    val catData = listOf(
+                        Triple(ExperimentCategory.MECHANICS,
+                            Brush.horizontalGradient(listOf(Color(0xFF1D4ED8), Color(0xFF3B82F6))),
+                            Color(0xFF3B82F6)),
+                        Triple(ExperimentCategory.ELECTRICITY,
+                            Brush.horizontalGradient(listOf(Color(0xFFD97706), Color(0xFFFBBF24))),
+                            Color(0xFFF59E0B)),
+                        Triple(ExperimentCategory.OPTICS,
+                            Brush.horizontalGradient(listOf(Violet800, Violet600)),
+                            Violet600),
+                        Triple(ExperimentCategory.THERMODYNAMICS,
+                            Brush.horizontalGradient(listOf(Color(0xFFDC2626), Color(0xFFF87171))),
+                            Color(0xFFF43F5E)),
                     )
-                    ExperimentCategory.entries.forEach { cat ->
+                    catData.forEach { (cat, gradient, trackColor) ->
                         val (done, total) = progressByCategory[cat] ?: Pair(0, 1)
-                        val fraction = if (total > 0) done.toFloat() / total.toFloat() else 0f
-                        val color = categoryColors[cat] ?: MaterialTheme.colorScheme.primary
-                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        val fraction = if (total > 0) done.toFloat() / total else 0f
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = cat.displayName,
+                                    cat.displayName,
                                     style = MaterialTheme.typography.bodySmall,
-                                    fontWeight = FontWeight.Medium
+                                    fontWeight = FontWeight.SemiBold
                                 )
                                 Text(
-                                    text = "$done/$total",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    "$done/$total",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
-                            LinearProgressIndicator(
-                                progress = { fraction },
+                            Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(6.dp)
-                                    .clip(RoundedCornerShape(3.dp)),
-                                color = color,
-                                trackColor = color.copy(alpha = 0.15f)
-                            )
+                                    .height(8.dp)
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(trackColor.copy(alpha = 0.12f))
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth(fraction)
+                                        .fillMaxHeight()
+                                        .clip(RoundedCornerShape(4.dp))
+                                        .background(gradient)
+                                )
+                            }
                         }
                     }
                 }
             }
 
-            OutlinedButton(
-                onClick = { showLogoutDialog = true },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.error
-                )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(
+                        Brush.horizontalGradient(
+                            listOf(Color(0xFFFFF1F2), Color(0xFFFFE4E6))
+                        )
+                    )
             ) {
-                Icon(
-                    Icons.Default.Logout,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Выйти из аккаунта")
+                TextButton(
+                    onClick = { showLogoutDialog = true },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        Icons.Default.Logout,
+                        null,
+                        tint = Color(0xFFE11D48),
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        "Выйти из аккаунта",
+                        color = Color(0xFFE11D48),
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(Modifier.height(8.dp))
         }
     }
 
@@ -227,19 +285,18 @@ fun ProfileScreen(
                     onValueChange = { editName = it },
                     label = { Text("Имя") },
                     singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 )
             },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        if (editName.isNotBlank()) {
-                            authViewModel.updateName(editName) { showEditDialog = false }
-                        }
+                        if (editName.isNotBlank()) authViewModel.updateName(editName) { showEditDialog = false }
                     },
                     enabled = !isLoading && editName.isNotBlank()
                 ) {
-                    if (isLoading) CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                    if (isLoading) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
                     else Text("Сохранить")
                 }
             },
@@ -253,7 +310,7 @@ fun ProfileScreen(
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
             title = { Text("Выход") },
-            text = { Text("Вы уверены, что хотите выйти из аккаунта?") },
+            text = { Text("Вы уверены, что хотите выйти?") },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -276,25 +333,36 @@ private fun StatCard(
     icon: ImageVector,
     value: String,
     label: String,
-    color: Color
+    gradient: Brush
 ) {
     Card(
         modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = color.copy(alpha = 0.1f)
-        )
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(1.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(24.dp))
-            Text(value, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = color)
-            Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Box(
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(CircleShape)
+                    .background(gradient),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, null, tint = Color.White, modifier = Modifier.size(22.dp))
+            }
+            Text(value, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
+            Text(
+                label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
