@@ -26,14 +26,16 @@ private val TOTAL_EXPERIMENTS = ExperimentType.entries.size
 @Composable
 fun MainScreen(
     onExperimentsClick: () -> Unit,
-    completedCount: Int = 0
+    onScannerClick: () -> Unit = {},
+    completedCount: Int = 0,
+    userName: String? = null
 ) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "Физика в AR",
+                        text = if (userName != null) "Привет, $userName!" else "Физика в AR",
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -54,6 +56,28 @@ fun MainScreen(
 
             if (completedCount > 0) {
                 ProgressCard(completed = completedCount, total = TOTAL_EXPERIMENTS)
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Button(
+                    onClick = onExperimentsClick,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Default.Science, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Все эксперименты", maxLines = 1)
+                }
+                OutlinedButton(
+                    onClick = onScannerClick,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Default.QrCodeScanner, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("QR Сканер", maxLines = 1)
+                }
             }
 
             Text(

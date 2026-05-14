@@ -1,11 +1,12 @@
 package com.app.dopp.ui_project
 
-import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import com.app.dopp.data.ScannerManager
 import com.app.dopp.data.repository.PhysicsRepository
+import com.app.dopp.physics.ExperimentCategory
+import com.app.dopp.physics.ExperimentType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -28,9 +29,26 @@ class PhysicsViewModel @Inject constructor(
         .map { list -> list.count { it.isCompleted } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
 
+    val totalRunCount: StateFlow<Int> = repository.getAllProgress()
+        .map { list -> list.sumOf { it.openCount } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
+
+    val progressByCategory: StateFlow<Map<ExperimentCategory, Pair<Int, Int>>> =
+        repository.getAllProgress()
+            .map { list ->
+                val completedSet = list.filter { it.isCompleted }.map { it.experimentId }.toSet()
+                ExperimentCategory.entries.associateWith { cat ->
+                    val catExps = ExperimentType.entries.filter { it.category == cat }
+                    val done = catExps.count { completedSet.contains(it.name) }
+                    Pair(done, catExps.size)
+                }
+            }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap())
+
     init {
         viewModelScope.launch {
             repository.seedLocalExperiments()
+            repository.syncProgressFromRemote()
         }
     }
 
@@ -42,9 +60,20 @@ class PhysicsViewModel @Inject constructor(
 
     fun onScanClick(navController: NavHostController) {
         scannerManager.startScanning { result ->
-            result?.let { url ->
-                navController.navigate("ar/${Uri.encode(url)}")
+            result?.let { raw ->
+                val experimentId = extractExperimentId(raw)
+                if (experimentId != null) {
+                    navController.navigate("ar/$experimentId")
+                }
             }
         }
+    }
+
+    private fun extractExperimentId(raw: String): String? {
+        val upperRaw = raw.uppercase()
+        val match = ExperimentType.entries.firstOrNull { upperRaw.contains(it.name) }
+        if (match != null) return match.name
+        if (ExperimentType.entries.any { it.name == raw }) return raw
+        return null
     }
 }

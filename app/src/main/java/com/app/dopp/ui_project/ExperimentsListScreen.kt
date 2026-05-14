@@ -10,7 +10,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -29,34 +28,31 @@ import com.app.dopp.physics.ExperimentType
 @Composable
 fun ExperimentsListScreen(
     onExperimentSelected: (ExperimentType) -> Unit,
-    onBackClick: () -> Unit,
     completedIds: Set<String> = emptySet()
 ) {
     var selectedCategory by remember { mutableStateOf<ExperimentCategory?>(null) }
+    var searchQuery by remember { mutableStateOf("") }
 
-    val filteredExperiments = remember(selectedCategory) {
-        if (selectedCategory == null) ExperimentType.entries
+    val filteredExperiments = remember(selectedCategory, searchQuery) {
+        val base = if (selectedCategory == null) ExperimentType.entries
         else ExperimentType.entries.filter { it.category == selectedCategory }
+        if (searchQuery.isBlank()) base
+        else base.filter {
+            it.displayName.contains(searchQuery, ignoreCase = true) ||
+            it.description.contains(searchQuery, ignoreCase = true)
+        }
     }
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "Физические эксперименты",
+                        text = "Эксперименты",
                         fontWeight = FontWeight.SemiBold
                     )
                 },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Назад"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
             )
@@ -67,10 +63,29 @@ fun ExperimentsListScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            LazyRow(
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                placeholder = { Text("Поиск экспериментов...") },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                trailingIcon = {
+                    if (searchQuery.isNotEmpty()) {
+                        IconButton(onClick = { searchQuery = "" }) {
+                            Icon(Icons.Default.Close, contentDescription = "Очистить")
+                        }
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
+                singleLine = true,
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(28.dp)
+            )
+
+            LazyRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 item {
