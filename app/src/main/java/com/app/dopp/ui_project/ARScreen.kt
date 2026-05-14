@@ -7,7 +7,9 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -17,9 +19,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.app.dopp.ar.AR3DRenderer
@@ -41,38 +45,29 @@ fun ARScreen(
     onExperimentStarted: () -> Unit = {}
 ) {
     val context = LocalContext.current
-    
-    // Camera permission
+
     var hasCameraPermission by remember {
         mutableStateOf(
-            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == 
-                PackageManager.PERMISSION_GRANTED
+            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+                    PackageManager.PERMISSION_GRANTED
         )
     }
-    
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        hasCameraPermission = isGranted
-    }
-    
+    ) { isGranted -> hasCameraPermission = isGranted }
+
     LaunchedEffect(Unit) {
-        if (!hasCameraPermission) {
-            permissionLauncher.launch(Manifest.permission.CAMERA)
-        }
+        if (!hasCameraPermission) permissionLauncher.launch(Manifest.permission.CAMERA)
     }
-    
-    // Simulation engine
+
     val simulationEngine = remember { SimulationEngine() }
     val renderer = remember { AR3DRenderer(context) }
 
-    // Simulation state
     var isRunning by remember { mutableStateOf(false) }
     var isPanelExpanded by remember { mutableStateOf(false) }
-    var showInfo by remember { mutableStateOf(true) }
+    var showInfo by remember { mutableStateOf(false) }
     var hasStartedOnce by remember { mutableStateOf(false) }
-    
-    // Parameters state
+
     var pendulumParams by remember { mutableStateOf(PendulumParameters()) }
     var freeFallParams by remember { mutableStateOf(FreeFallParameters()) }
     var collisionParams by remember { mutableStateOf(CollisionParameters()) }
@@ -82,8 +77,7 @@ fun ARScreen(
     var lensParams by remember { mutableStateOf(LensParameters()) }
     var brownianParams by remember { mutableStateOf(BrownianMotionParameters()) }
     var gasExpansionParams by remember { mutableStateOf(GasExpansionParameters()) }
-    
-    // Simulation state
+
     var pendulumState by remember { mutableStateOf(PendulumState()) }
     var freeFallState by remember { mutableStateOf(FreeFallState()) }
     var collisionState by remember { mutableStateOf(CollisionState()) }
@@ -93,76 +87,38 @@ fun ARScreen(
     var lensState by remember { mutableStateOf(LensState()) }
     var brownianState by remember { mutableStateOf(BrownianMotionState()) }
     var gasExpansionState by remember { mutableStateOf(GasExpansionState()) }
-    
-    // Simulation loop
+
     LaunchedEffect(isRunning, experimentType) {
         while (isRunning) {
             when (experimentType) {
-                ExperimentType.PENDULUM -> {
-                    pendulumState = simulationEngine.updatePendulum(pendulumParams, pendulumState)
-                }
-                ExperimentType.FREE_FALL -> {
+                ExperimentType.PENDULUM         -> pendulumState = simulationEngine.updatePendulum(pendulumParams, pendulumState)
+                ExperimentType.FREE_FALL        -> {
                     freeFallState = simulationEngine.updateFreeFall(freeFallParams, freeFallState)
-                    if (freeFallState.hasLanded) {
-                        isRunning = false
-                    }
+                    if (freeFallState.hasLanded) isRunning = false
                 }
-                ExperimentType.COLLISION -> {
-                    collisionState = simulationEngine.updateCollision(collisionParams, collisionState)
-                }
-                ExperimentType.ELECTRIC_CIRCUIT -> {
-                    circuitState = simulationEngine.updateCircuit(circuitParams, circuitState)
-                }
-                ExperimentType.MAGNETIC_FIELD -> {
-                    magneticFieldState = simulationEngine.updateMagneticField(magneticFieldParams, magneticFieldState)
-                }
-                ExperimentType.LIGHT_REFRACTION -> {
-                    refractionState = simulationEngine.updateRefraction(refractionParams, refractionState)
-                }
-                ExperimentType.LENS -> {
-                    lensState = simulationEngine.updateLens(lensParams, lensState)
-                }
-                ExperimentType.BROWNIAN_MOTION -> {
-                    brownianState = simulationEngine.updateBrownianMotion(brownianParams, brownianState)
-                }
-                ExperimentType.GAS_EXPANSION -> {
-                    gasExpansionState = simulationEngine.updateGasExpansion(gasExpansionParams, gasExpansionState)
-                }
+                ExperimentType.COLLISION        -> collisionState = simulationEngine.updateCollision(collisionParams, collisionState)
+                ExperimentType.ELECTRIC_CIRCUIT -> circuitState = simulationEngine.updateCircuit(circuitParams, circuitState)
+                ExperimentType.MAGNETIC_FIELD   -> magneticFieldState = simulationEngine.updateMagneticField(magneticFieldParams, magneticFieldState)
+                ExperimentType.LIGHT_REFRACTION -> refractionState = simulationEngine.updateRefraction(refractionParams, refractionState)
+                ExperimentType.LENS             -> lensState = simulationEngine.updateLens(lensParams, lensState)
+                ExperimentType.BROWNIAN_MOTION  -> brownianState = simulationEngine.updateBrownianMotion(brownianParams, brownianState)
+                ExperimentType.GAS_EXPANSION    -> gasExpansionState = simulationEngine.updateGasExpansion(gasExpansionParams, gasExpansionState)
             }
-            delay(16) // ~60 FPS
+            delay(16)
         }
     }
-    
-    // Start/Reset simulation
+
     fun startSimulation() {
         when (experimentType) {
-            ExperimentType.PENDULUM -> {
-                pendulumState = simulationEngine.initPendulum(pendulumParams)
-            }
-            ExperimentType.FREE_FALL -> {
-                freeFallState = simulationEngine.initFreeFall(freeFallParams)
-            }
-            ExperimentType.COLLISION -> {
-                collisionState = simulationEngine.initCollision(collisionParams)
-            }
-            ExperimentType.ELECTRIC_CIRCUIT -> {
-                circuitState = simulationEngine.initCircuit(circuitParams)
-            }
-            ExperimentType.MAGNETIC_FIELD -> {
-                magneticFieldState = simulationEngine.initMagneticField(magneticFieldParams)
-            }
-            ExperimentType.LIGHT_REFRACTION -> {
-                refractionState = simulationEngine.initRefraction(refractionParams)
-            }
-            ExperimentType.LENS -> {
-                lensState = simulationEngine.initLens(lensParams)
-            }
-            ExperimentType.BROWNIAN_MOTION -> {
-                brownianState = simulationEngine.initBrownianMotion(brownianParams)
-            }
-            ExperimentType.GAS_EXPANSION -> {
-                gasExpansionState = simulationEngine.initGasExpansion(gasExpansionParams)
-            }
+            ExperimentType.PENDULUM         -> pendulumState = simulationEngine.initPendulum(pendulumParams)
+            ExperimentType.FREE_FALL        -> freeFallState = simulationEngine.initFreeFall(freeFallParams)
+            ExperimentType.COLLISION        -> collisionState = simulationEngine.initCollision(collisionParams)
+            ExperimentType.ELECTRIC_CIRCUIT -> circuitState = simulationEngine.initCircuit(circuitParams)
+            ExperimentType.MAGNETIC_FIELD   -> magneticFieldState = simulationEngine.initMagneticField(magneticFieldParams)
+            ExperimentType.LIGHT_REFRACTION -> refractionState = simulationEngine.initRefraction(refractionParams)
+            ExperimentType.LENS             -> lensState = simulationEngine.initLens(lensParams)
+            ExperimentType.BROWNIAN_MOTION  -> brownianState = simulationEngine.initBrownianMotion(brownianParams)
+            ExperimentType.GAS_EXPANSION    -> gasExpansionState = simulationEngine.initGasExpansion(gasExpansionParams)
         }
         if (!hasStartedOnce) {
             hasStartedOnce = true
@@ -170,36 +126,30 @@ fun ARScreen(
         }
         isRunning = true
     }
-    
+
     fun resetSimulation() {
         isRunning = false
         startSimulation()
     }
-    
-    // Check if any simulation is running
-    val anySimulationStarted = pendulumState.isRunning || 
-        freeFallState.isRunning || 
-        collisionState.isRunning ||
-        circuitState.isRunning ||
-        magneticFieldState.isRunning ||
-        refractionState.isRunning ||
-        lensState.isRunning ||
-        brownianState.isRunning ||
-        gasExpansionState.isRunning
+
+    val anySimulationStarted = pendulumState.isRunning || freeFallState.isRunning ||
+            collisionState.isRunning || circuitState.isRunning || magneticFieldState.isRunning ||
+            refractionState.isRunning || lensState.isRunning || brownianState.isRunning ||
+            gasExpansionState.isRunning
 
     Box(modifier = Modifier.fillMaxSize()) {
+
+        // ── Layer 0: Background (AR camera or themed gradient) ──────────────
         if (hasCameraPermission) {
-            // AR Scene
             val engine = rememberEngine()
             val modelLoader = rememberModelLoader(engine)
             val childNodes = rememberNodes()
-            
             ARScene(
                 modifier = Modifier.fillMaxSize(),
                 engine = engine,
                 modelLoader = modelLoader,
                 childNodes = childNodes,
-                planeRenderer = true,
+                planeRenderer = false,
                 sessionConfiguration = { session, config ->
                     config.depthMode = when (session.isDepthModeSupported(Config.DepthMode.AUTOMATIC)) {
                         true -> Config.DepthMode.AUTOMATIC
@@ -213,9 +163,7 @@ fun ARScreen(
                     override fun onShowPress(e: MotionEvent, node: io.github.sceneview.node.Node?) {}
                     override fun onSingleTapUp(e: MotionEvent, node: io.github.sceneview.node.Node?) {}
                     override fun onSingleTapConfirmed(e: MotionEvent, node: io.github.sceneview.node.Node?) {
-                        if (!anySimulationStarted) {
-                            startSimulation()
-                        }
+                        if (!anySimulationStarted) startSimulation()
                     }
                     override fun onDoubleTap(e: MotionEvent, node: io.github.sceneview.node.Node?) {}
                     override fun onDoubleTapEvent(e: MotionEvent, node: io.github.sceneview.node.Node?) {}
@@ -234,118 +182,121 @@ fun ARScreen(
                     override fun onScaleEnd(detector: io.github.sceneview.gesture.ScaleGestureDetector, e: MotionEvent, node: io.github.sceneview.node.Node?) {}
                 }
             )
-            
-            // Simulation Canvas Overlay (2D representation when 3D is not available)
-            SimulationCanvasOverlay(
-                experimentType = experimentType,
-                isRunning = isRunning,
-                pendulumState = pendulumState,
-                pendulumParams = pendulumParams,
-                freeFallState = freeFallState,
-                freeFallParams = freeFallParams,
-                collisionState = collisionState,
-                collisionParams = collisionParams,
-                circuitState = circuitState,
-                magneticFieldState = magneticFieldState,
-                refractionState = refractionState,
-                refractionParams = refractionParams,
-                lensState = lensState,
-                lensParams = lensParams,
-                brownianState = brownianState,
-                gasExpansionState = gasExpansionState
-            )
+            // Dark vignette so canvas drawings are visible over camera
+            Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.42f)))
         } else {
-            // No permission screen
+            // Physics-themed gradient background
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surface),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.CameraAlt,
-                        contentDescription = null,
-                        modifier = Modifier.size(64.dp),
-                        tint = MaterialTheme.colorScheme.primary
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(Color(0xFF0D1B2A), Color(0xFF1B2D3E), Color(0xFF0A1628))
+                        )
                     )
-                    Text(
-                        text = "Требуется доступ к камере",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Text(
-                        text = "Для работы AR необходимо разрешение на использование камеры",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Button(onClick = { permissionLauncher.launch(Manifest.permission.CAMERA) }) {
-                        Text("Предоставить доступ")
-                    }
-                }
-            }
+            )
         }
-        
-        // Top bar
+
+        // ── Layer 1: Simulation canvas — ALWAYS VISIBLE ─────────────────────
+        SimulationCanvas(
+            experimentType = experimentType,
+            pendulumState = pendulumState,
+            pendulumParams = pendulumParams,
+            freeFallState = freeFallState,
+            freeFallParams = freeFallParams,
+            collisionState = collisionState,
+            collisionParams = collisionParams,
+            circuitState = circuitState,
+            magneticFieldState = magneticFieldState,
+            refractionState = refractionState,
+            refractionParams = refractionParams,
+            lensState = lensState,
+            lensParams = lensParams,
+            brownianState = brownianState,
+            gasExpansionState = gasExpansionState,
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.85f)
+                .align(Alignment.TopCenter)
+                .padding(top = 64.dp, bottom = 8.dp)
+                .then(
+                    if (!anySimulationStarted)
+                        Modifier.clickable { startSimulation() }
+                    else
+                        Modifier
+                )
+        )
+
+        // ── Layer 2: Top bar ────────────────────────────────────────────────
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .statusBarsPadding()
-                .padding(16.dp),
+                .padding(horizontal = 12.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Back button
             FilledIconButton(
-                onClick = onBackClick,
+                onClick = {
+                    isRunning = false
+                    onBackClick()
+                },
                 colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
+                    containerColor = Color.White.copy(alpha = 0.15f)
                 )
             ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Назад"
-                )
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Назад", tint = Color.White)
             }
-            
-            // Experiment title
+
             Surface(
                 shape = RoundedCornerShape(20.dp),
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
+                color = Color.Black.copy(alpha = 0.45f)
             ) {
                 Text(
                     text = experimentType.displayName,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White
                 )
             }
-            
-            // Info toggle
-            FilledIconButton(
-                onClick = { showInfo = !showInfo },
-                colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = if (showInfo) 
-                        MaterialTheme.colorScheme.primaryContainer 
-                    else 
-                        MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
-                )
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Info,
-                    contentDescription = "Информация"
-                )
+
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                // AR indicator badge
+                if (hasCameraPermission) {
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = Color(0xFF00C853).copy(alpha = 0.85f)
+                    ) {
+                        Text(
+                            text = "AR",
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+                }
+                FilledIconButton(
+                    onClick = { showInfo = !showInfo },
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        containerColor = if (showInfo)
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.9f)
+                        else
+                            Color.White.copy(alpha = 0.15f)
+                    )
+                ) {
+                    Icon(Icons.Default.Info, "Данные", tint = Color.White)
+                }
             }
         }
-        
-        // Info panel (top right)
+
+        // ── Layer 3: Info panel (top right) ─────────────────────────────────
         AnimatedVisibility(
-            visible = showInfo && anySimulationStarted,
+            visible = showInfo,
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(top = 80.dp, end = 16.dp),
+                .padding(top = 76.dp, end = 12.dp),
             enter = slideInHorizontally { it } + fadeIn(),
             exit = slideOutHorizontally { it } + fadeOut()
         ) {
@@ -366,97 +317,107 @@ fun ARScreen(
                 circuitParams = circuitParams,
                 refractionParams = refractionParams,
                 lensParams = lensParams,
-                modifier = Modifier.width(280.dp)
+                modifier = Modifier.width(240.dp)
             )
         }
-        
-        // Instruction text (when not started)
-        if (!anySimulationStarted && hasCameraPermission) {
+
+        // ── Layer 4: Start prompt (when simulation not yet started) ──────────
+        if (!anySimulationStarted) {
             Box(
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Color.Black.copy(alpha = 0.6f))
-                    .padding(horizontal = 24.dp, vertical = 16.dp)
+                    .padding(bottom = 140.dp)
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.TouchApp,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(32.dp)
-                    )
+                    Surface(
+                        shape = CircleShape,
+                        color = Color.White.copy(alpha = 0.12f)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PlayCircle,
+                            contentDescription = null,
+                            modifier = Modifier.padding(16.dp).size(40.dp),
+                            tint = Color.White.copy(alpha = 0.7f)
+                        )
+                    }
                     Text(
-                        text = "Нажмите на экран или кнопку воспроизведения",
-                        color = Color.White,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "чтобы запустить эксперимент",
-                        color = Color.White.copy(alpha = 0.7f),
-                        style = MaterialTheme.typography.bodySmall
+                        text = "Нажмите на экран или\nкнопку ▶ для запуска",
+                        color = Color.White.copy(alpha = 0.65f),
+                        style = MaterialTheme.typography.bodySmall,
+                        textAlign = TextAlign.Center
                     )
                 }
             }
         }
-        
-        // Control buttons (bottom center)
-        Row(
+
+        // ── Layer 5: Control buttons + parameters panel (bottom) ─────────────
+        Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 140.dp)
-                .clip(RoundedCornerShape(28.dp))
-                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.95f))
-                .padding(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Play/Pause button
-            FilledIconButton(
-                onClick = {
-                    if (isRunning) {
-                        isRunning = false
-                    } else {
-                        if (!anySimulationStarted) {
-                            startSimulation()
+            // Play/Pause + Reset row
+            Row(
+                modifier = Modifier
+                    .padding(bottom = 8.dp)
+                    .clip(RoundedCornerShape(28.dp))
+                    .background(Color.Black.copy(alpha = 0.55f))
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Reset
+                IconButton(
+                    onClick = { resetSimulation() },
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.12f))
+                ) {
+                    Icon(Icons.Default.Refresh, "Сброс", tint = Color.White)
+                }
+
+                // Play / Pause
+                FilledIconButton(
+                    onClick = {
+                        if (isRunning) {
+                            isRunning = false
                         } else {
-                            isRunning = true
+                            if (!anySimulationStarted) startSimulation() else isRunning = true
                         }
-                    }
-                },
-                colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
-            ) {
-                Icon(
-                    imageVector = if (isRunning) Icons.Default.Pause else Icons.Default.PlayArrow,
-                    contentDescription = if (isRunning) "Пауза" else "Старт"
-                )
+                    },
+                    modifier = Modifier.size(52.dp),
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Icon(
+                        imageVector = if (isRunning) Icons.Default.Pause else Icons.Default.PlayArrow,
+                        contentDescription = if (isRunning) "Пауза" else "Старт",
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+
+                // Parameters toggle
+                IconButton(
+                    onClick = { isPanelExpanded = !isPanelExpanded },
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(
+                            if (isPanelExpanded)
+                                MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f)
+                            else
+                                Color.White.copy(alpha = 0.12f)
+                        )
+                ) {
+                    Icon(Icons.Default.Tune, "Параметры", tint = Color.White)
+                }
             }
-            
-            // Reset button
-            FilledIconButton(
-                onClick = { resetSimulation() },
-                colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer
-                )
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Refresh,
-                    contentDescription = "Сброс",
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-            }
-        }
-        
-        // Parameters panel (bottom)
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-        ) {
+
+            // Parameters panel
             ParametersPanel(
                 experimentType = experimentType,
                 isExpanded = isPanelExpanded,
@@ -480,63 +441,6 @@ fun ARScreen(
                 gasExpansionParams = gasExpansionParams,
                 onGasExpansionParamsChange = { gasExpansionParams = it }
             )
-        }
-    }
-}
-
-@Composable
-private fun SimulationCanvasOverlay(
-    experimentType: ExperimentType,
-    isRunning: Boolean,
-    pendulumState: PendulumState,
-    pendulumParams: PendulumParameters,
-    freeFallState: FreeFallState,
-    freeFallParams: FreeFallParameters,
-    collisionState: CollisionState,
-    collisionParams: CollisionParameters,
-    circuitState: CircuitState,
-    magneticFieldState: MagneticFieldState,
-    refractionState: RefractionState,
-    refractionParams: RefractionParameters,
-    lensState: LensState,
-    lensParams: LensParameters,
-    brownianState: BrownianMotionState,
-    gasExpansionState: GasExpansionState
-) {
-    // This composable can render 2D Canvas overlays for the simulations
-    // The actual 3D rendering happens in the AR Scene with the NodeData from AR3DRenderer
-    
-    // For now, we show a status indicator
-    if (isRunning) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(start = 16.dp, top = 80.dp)
-        ) {
-            // Status indicator
-            Surface(
-                shape = RoundedCornerShape(8.dp),
-                color = Color(0xFF4CAF50).copy(alpha = 0.9f),
-                modifier = Modifier.padding(top = 8.dp)
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(Color.White)
-                    )
-                    Text(
-                        text = "Симуляция активна",
-                        color = Color.White,
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                }
-            }
         }
     }
 }
