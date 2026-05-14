@@ -50,9 +50,13 @@ class AuthViewModel @Inject constructor(
                 val user = api.getMe()
                 authPreferences.saveUser(user)
                 _authState.value = AuthState.Authenticated(user)
+            } catch (e: retrofit2.HttpException) {
+                if (e.code() == 401) {
+                    authPreferences.clear()
+                    _authState.value = AuthState.Unauthenticated
+                }
             } catch (_: Exception) {
-                authPreferences.clear()
-                _authState.value = AuthState.Unauthenticated
+                // Network error — keep cached user, stay authenticated
             }
         }
     }
