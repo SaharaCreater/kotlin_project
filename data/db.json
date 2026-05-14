@@ -15,6 +15,14 @@
       "password_hash": "$2b$10$6WtK7/hoxRCheTcnlDlfIuUa.SAu2dsqc.VrkPMrn.HCKCs9CZutq",
       "avatar_color": "#B5264C",
       "created_at": 1778617308306
+    },
+    {
+      "id": "433faff6-aa70-464b-8722-edc920aa33b4",
+      "email": "testuser_1778767402014@example.com",
+      "name": "Test User",
+      "password_hash": "$2b$10$cWh3y1gTURpEblo9rjynZeyWHJSX9JYXKzcpwiY6zRxCipNu3GrrS",
+      "avatar_color": "#7D5700",
+      "created_at": 1778767444836
     }
   ],
   "progress": [

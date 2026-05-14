@@ -8,7 +8,8 @@ const path = require('path');
 
 const app = express();
 const PORT = 5000;
-const JWT_SECRET = process.env.JWT_SECRET || 'dopp-physics-ar-secret-2024';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) { console.error('FATAL: JWT_SECRET is not set'); process.exit(1); }
 const DB_PATH = path.join(__dirname, 'data', 'db.json');
 
 // ===== Simple JSON "SQLite-like" DB =====
