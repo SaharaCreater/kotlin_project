@@ -8,5 +8,6 @@ data class ExperimentProgress(
     @PrimaryKey val experimentId: String,
     val isCompleted: Boolean = false,
     val openCount: Int = 0,
-    val completedAt: Long? = null
+    val completedAt: Long? = null,
+    val pendingSyncNeeded: Boolean = false
 )

@@ -37,11 +37,23 @@ class PhysicsRepository @Inject constructor(
                     experimentId = dto.experiment_id,
                     isCompleted = dto.completed || (current?.isCompleted ?: false),
                     openCount = maxOf(dto.run_count, current?.openCount ?: 0),
-                    completedAt = dto.last_run_at ?: current?.completedAt
+                    completedAt = dto.last_run_at ?: current?.completedAt,
+                    pendingSyncNeeded = false
                 )
                 progressDao.upsertProgress(merged)
             }
         } catch (_: Exception) {
+        }
+    }
+
+    suspend fun syncPendingToRemote() {
+        val pending = progressDao.getPendingSync()
+        pending.forEach { progress ->
+            try {
+                api.recordProgress(progress.experimentId)
+                progressDao.upsertProgress(progress.copy(pendingSyncNeeded = false))
+            } catch (_: Exception) {
+            }
         }
     }
 
@@ -52,11 +64,16 @@ class PhysicsRepository @Inject constructor(
                 experimentId = experimentId,
                 isCompleted = true,
                 openCount = (current?.openCount ?: 0) + 1,
-                completedAt = System.currentTimeMillis()
+                completedAt = System.currentTimeMillis(),
+                pendingSyncNeeded = true
             )
         )
         try {
             api.recordProgress(experimentId)
+            val saved = progressDao.getProgress(experimentId)
+            if (saved != null) {
+                progressDao.upsertProgress(saved.copy(pendingSyncNeeded = false))
+            }
         } catch (_: Exception) {
         }
     }

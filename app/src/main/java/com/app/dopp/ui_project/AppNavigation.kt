@@ -145,6 +145,7 @@ fun MainAppScreen(outerNavController: NavHostController) {
         ) {
             composable("home") {
                 val completedCount by physicsViewModel.completedCount.collectAsStateWithLifecycle()
+                val isOnline by physicsViewModel.isOnline.collectAsStateWithLifecycle()
                 val authViewModel: AuthViewModel = hiltViewModel()
                 val authState by authViewModel.authState.collectAsStateWithLifecycle()
                 val userName = (authState as? AuthState.Authenticated)?.user?.name
@@ -157,17 +158,20 @@ fun MainAppScreen(outerNavController: NavHostController) {
                     },
                     onScannerClick = { physicsViewModel.onScanClick(outerNavController) },
                     completedCount = completedCount,
-                    userName = userName
+                    userName = userName,
+                    isOnline = isOnline
                 )
             }
 
             composable("experiments") {
                 val completedIds by physicsViewModel.completedIds.collectAsStateWithLifecycle()
+                val isOnline by physicsViewModel.isOnline.collectAsStateWithLifecycle()
                 ExperimentsListScreen(
                     onExperimentSelected = { experimentType ->
                         outerNavController.navigate("ar/${experimentType.name}")
                     },
-                    completedIds = completedIds
+                    completedIds = completedIds,
+                    isOnline = isOnline
                 )
             }
 

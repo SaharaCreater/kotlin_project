@@ -9,7 +9,7 @@ import com.app.dopp.domain.PhysicsExperiment
 
 @Database(
     entities = [PhysicsExperiment::class, ExperimentProgress::class],
-    version = 3
+    version = 4
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun dao(): PhysicsDao
@@ -49,6 +49,14 @@ abstract class AppDatabase : RoomDatabase() {
                         completedAt INTEGER
                     )
                 """.trimIndent())
+            }
+        }
+
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    "ALTER TABLE experiment_progress ADD COLUMN pendingSyncNeeded INTEGER NOT NULL DEFAULT 0"
+                )
             }
         }
     }

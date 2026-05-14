@@ -17,4 +17,7 @@ interface ProgressDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertProgress(progress: ExperimentProgress)
+
+    @Query("SELECT * FROM experiment_progress WHERE pendingSyncNeeded = 1")
+    suspend fun getPendingSync(): List<ExperimentProgress>
 }

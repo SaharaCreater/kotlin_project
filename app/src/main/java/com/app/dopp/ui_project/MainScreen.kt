@@ -26,6 +26,7 @@ import com.app.dopp.physics.ExperimentType
 import com.app.dopp.ui.theme.Sky500
 import com.app.dopp.ui.theme.Violet600
 import com.app.dopp.ui.theme.Violet800
+import com.app.dopp.ui_project.components.OfflineBanner
 
 private val TOTAL_EXPERIMENTS = ExperimentType.entries.size
 
@@ -35,7 +36,8 @@ fun MainScreen(
     onExperimentsClick: () -> Unit,
     onScannerClick: () -> Unit = {},
     completedCount: Int = 0,
-    userName: String? = null
+    userName: String? = null,
+    isOnline: Boolean = true
 ) {
     Scaffold(
         topBar = {
@@ -83,10 +85,15 @@ fun MainScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
+            OfflineBanner(isOffline = !isOnline)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
             HeroCard(onExperimentsClick = onExperimentsClick)
 
             if (completedCount > 0) {
@@ -229,6 +236,7 @@ fun MainScreen(
             }
 
             Spacer(Modifier.height(8.dp))
+            }
         }
     }
 }

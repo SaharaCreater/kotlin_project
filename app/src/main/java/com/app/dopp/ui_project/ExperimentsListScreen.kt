@@ -26,12 +26,14 @@ import com.app.dopp.physics.ExperimentCategory
 import com.app.dopp.physics.ExperimentType
 import com.app.dopp.ui.theme.Violet600
 import com.app.dopp.ui.theme.Violet800
+import com.app.dopp.ui_project.components.OfflineBanner
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExperimentsListScreen(
     onExperimentSelected: (ExperimentType) -> Unit,
-    completedIds: Set<String> = emptySet()
+    completedIds: Set<String> = emptySet(),
+    isOnline: Boolean = true
 ) {
     var selectedCategory by remember { mutableStateOf<ExperimentCategory?>(null) }
     var searchQuery      by remember { mutableStateOf("") }
@@ -61,6 +63,7 @@ fun ExperimentsListScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
+            OfflineBanner(isOffline = !isOnline)
             TextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },

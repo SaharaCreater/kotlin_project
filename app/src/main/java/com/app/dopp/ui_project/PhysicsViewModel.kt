@@ -3,6 +3,7 @@ package com.app.dopp.ui_project
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
+import com.app.dopp.data.NetworkMonitor
 import com.app.dopp.data.ScannerManager
 import com.app.dopp.data.repository.PhysicsRepository
 import com.app.dopp.physics.ExperimentCategory
@@ -18,8 +19,12 @@ import javax.inject.Inject
 @HiltViewModel
 class PhysicsViewModel @Inject constructor(
     private val repository: PhysicsRepository,
-    private val scannerManager: ScannerManager
+    private val scannerManager: ScannerManager,
+    private val networkMonitor: NetworkMonitor
 ) : ViewModel() {
+
+    val isOnline: StateFlow<Boolean> = networkMonitor.isOnline
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
 
     val completedIds: StateFlow<Set<String>> = repository.getAllProgress()
         .map { list -> list.filter { it.isCompleted }.map { it.experimentId }.toSet() }
@@ -49,6 +54,16 @@ class PhysicsViewModel @Inject constructor(
         viewModelScope.launch {
             repository.seedLocalExperiments()
             repository.syncProgressFromRemote()
+        }
+        viewModelScope.launch {
+            var wasOffline = false
+            networkMonitor.isOnline.collect { online ->
+                if (online && wasOffline) {
+                    repository.syncPendingToRemote()
+                    repository.syncProgressFromRemote()
+                }
+                wasOffline = !online
+            }
         }
     }
 
