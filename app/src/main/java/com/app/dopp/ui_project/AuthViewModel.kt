@@ -133,4 +133,11 @@ class AuthViewModel @Inject constructor(
     }
 
     fun currentUser(): UserDto? = (_authState.value as? AuthState.Authenticated)?.user
+
+    fun getServerUrl(): String = authPreferences.serverUrl ?: com.app.dopp.BuildConfig.SERVER_URL
+
+    fun saveServerUrl(url: String) {
+        val normalized = url.trim().trimEnd('/') + "/"
+        authPreferences.serverUrl = if (normalized == "/" || normalized.isBlank()) null else normalized
+    }
 }

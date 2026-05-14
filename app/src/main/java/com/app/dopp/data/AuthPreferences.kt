@@ -32,6 +32,10 @@ class AuthPreferences @Inject constructor(
         get() = prefs.getString("user_avatar_color", "#6750A4")
         set(value) = prefs.edit().putString("user_avatar_color", value).apply()
 
+    var serverUrl: String?
+        get() = prefs.getString("server_url", null)
+        set(value) = prefs.edit().putString("server_url", value).apply()
+
     fun saveUser(user: UserDto) {
         userId = user.id
         userName = user.name
