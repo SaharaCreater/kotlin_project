@@ -7,6 +7,7 @@ import com.app.dopp.data.local.AppDatabase
 import com.app.dopp.data.local.AppDatabase.Companion.MIGRATION_1_2
 import com.app.dopp.data.local.PhysicsDao
 import com.app.dopp.data.remote.PhysicsApi
+import com.app.dopp.BuildConfig
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -23,11 +24,8 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideRetrofit(): Retrofit {
-        val baseUrl = System.getenv("REPLIT_DEV_DOMAIN")
-            ?.let { "https://$it/" }
-            ?: "http://10.0.2.2:5000/"
         return Retrofit.Builder()
-            .baseUrl(baseUrl)
+            .baseUrl(BuildConfig.SERVER_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }

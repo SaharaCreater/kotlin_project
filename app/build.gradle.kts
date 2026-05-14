@@ -18,6 +18,10 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        val serverUrl = project.findProperty("SERVER_URL") as? String
+            ?: "https://7e67fb79-a2d4-495e-99b2-77a459a699ae-00-2d88yifdipz8s.janeway.replit.dev/"
+        buildConfigField("String", "SERVER_URL", "\"$serverUrl\"")
     }
 
     buildTypes {
@@ -38,6 +42,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
