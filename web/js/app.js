@@ -135,9 +135,14 @@ const App = (() => {
     const hash = location.hash.replace(/^#/, '') || '/';
     const isLoginPage = hash === '/login' || hash === '/';
     const show = !!s.user && !isLoginPage;
-    if (rail) rail.classList.toggle('nav-hidden', !show);
-    if (bottom) bottom.classList.toggle('nav-hidden', !show);
-    // Also toggle main content padding
+    if (rail) {
+      rail.style.display = show ? 'flex' : 'none';
+      rail.classList.toggle('nav-hidden', !show);
+    }
+    if (bottom) {
+      bottom.style.display = show ? 'flex' : 'none';
+      bottom.classList.toggle('nav-hidden', !show);
+    }
     const main = document.getElementById('main-content');
     if (main) main.style.marginLeft = '';
     _updateNavActive();

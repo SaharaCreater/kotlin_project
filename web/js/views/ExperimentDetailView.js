@@ -102,7 +102,7 @@ class ExperimentDetailView {
       </div>
 
       <!-- QR Dialog -->
-      <div id="qr-dialog" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:flex;align-items:center;justify-content:center">
+      <div id="qr-dialog" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:center;justify-content:center">
         <div class="dialog" style="max-width:320px;text-align:center">
           <div class="dialog-title">QR-код эксперимента</div>
           <div class="dialog-content">Отсканируйте для быстрого доступа к «${exp.name}»</div>

@@ -22,17 +22,17 @@
       "id": "eaea4c81-af40-4b4b-ba53-3c38a8a6d718",
       "user_id": "b28aebac-0245-4d52-adb8-76b3fb839b08",
       "experiment_id": "PENDULUM",
-      "run_count": 7,
+      "run_count": 8,
       "completed": true,
-      "last_run_at": 1778619774190
+      "last_run_at": 1778741770016
     },
     {
       "id": "76a9099d-a023-4f27-a592-0fc7da14e68d",
       "user_id": "b28aebac-0245-4d52-adb8-76b3fb839b08",
       "experiment_id": "FREE_FALL",
-      "run_count": 2,
+      "run_count": 3,
       "completed": true,
-      "last_run_at": 1778617566019
+      "last_run_at": 1778741766817
     },
     {
       "id": "e93c1caa-e27a-47be-afe6-e5c0ec90199f",
@@ -49,6 +49,14 @@
       "run_count": 2,
       "completed": true,
       "last_run_at": 1778740905915
+    },
+    {
+      "id": "1eda8722-bb99-43bf-9041-25ed5dd29491",
+      "user_id": "b28aebac-0245-4d52-adb8-76b3fb839b08",
+      "experiment_id": "MAGNETIC_FIELD",
+      "run_count": 1,
+      "completed": true,
+      "last_run_at": 1778741842449
     }
   ],
   "sessions": []
