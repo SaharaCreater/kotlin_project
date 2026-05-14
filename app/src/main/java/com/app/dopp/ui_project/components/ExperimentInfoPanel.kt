@@ -1,7 +1,7 @@
 package com.app.dopp.ui_project.components
 
-import androidx.compose.animation.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -9,18 +9,25 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.app.dopp.physics.*
 import kotlin.math.abs
 
-/**
- * Panel showing real-time experiment data and physics values
- */
+private val InfoBg = Color(0xFF0D0821).copy(alpha = 0.88f)
+private val InfoBorder = Color.White.copy(alpha = 0.10f)
+private val InfoLabel = Color.White.copy(alpha = 0.50f)
+private val InfoValue = Color(0xFF93C5FD)
+private val InfoAccent = Color(0xFF7C3AED)
+private val InfoDivider = Color.White.copy(alpha = 0.07f)
+
 @Composable
 fun ExperimentInfoPanel(
     experimentType: ExperimentType,
-    // States
     pendulumState: PendulumState? = null,
     freeFallState: FreeFallState? = null,
     collisionState: CollisionState? = null,
@@ -30,7 +37,6 @@ fun ExperimentInfoPanel(
     lensState: LensState? = null,
     brownianState: BrownianMotionState? = null,
     gasExpansionState: GasExpansionState? = null,
-    // Parameters for context
     pendulumParams: PendulumParameters? = null,
     freeFallParams: FreeFallParameters? = null,
     collisionParams: CollisionParameters? = null,
@@ -39,192 +45,134 @@ fun ExperimentInfoPanel(
     lensParams: LensParameters? = null,
     modifier: Modifier = Modifier
 ) {
-    Card(
+    Box(
         modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f)
-        )
+            .clip(RoundedCornerShape(16.dp))
+            .background(InfoBg)
+            .border(1.dp, InfoBorder, RoundedCornerShape(16.dp))
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Text(
-                text = "Данные эксперимента",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            
-            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-            
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(3.dp, 14.dp)
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(
+                            Brush.verticalGradient(listOf(InfoAccent, Color(0xFF0EA5E9)))
+                        )
+                )
+                Text(
+                    text = "Данные",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    fontSize = 12.sp
+                )
+            }
+
+            HorizontalDivider(color = InfoDivider)
+
             when (experimentType) {
-                ExperimentType.PENDULUM -> pendulumState?.let { state ->
-                    PendulumInfo(state, pendulumParams)
-                }
-                ExperimentType.FREE_FALL -> freeFallState?.let { state ->
-                    FreeFallInfo(state, freeFallParams)
-                }
-                ExperimentType.COLLISION -> collisionState?.let { state ->
-                    CollisionInfo(state, collisionParams)
-                }
-                ExperimentType.ELECTRIC_CIRCUIT -> circuitState?.let { state ->
-                    CircuitInfo(state, circuitParams)
-                }
-                ExperimentType.MAGNETIC_FIELD -> magneticFieldState?.let { state ->
-                    MagneticFieldInfo(state)
-                }
-                ExperimentType.LIGHT_REFRACTION -> refractionState?.let { state ->
-                    RefractionInfo(state, refractionParams)
-                }
-                ExperimentType.LENS -> lensState?.let { state ->
-                    LensInfo(state, lensParams)
-                }
-                ExperimentType.BROWNIAN_MOTION -> brownianState?.let { state ->
-                    BrownianInfo(state)
-                }
-                ExperimentType.GAS_EXPANSION -> gasExpansionState?.let { state ->
-                    GasExpansionInfo(state)
-                }
+                ExperimentType.PENDULUM -> pendulumState?.let { PendulumInfo(it, pendulumParams) }
+                ExperimentType.FREE_FALL -> freeFallState?.let { FreeFallInfo(it, freeFallParams) }
+                ExperimentType.COLLISION -> collisionState?.let { CollisionInfo(it, collisionParams) }
+                ExperimentType.ELECTRIC_CIRCUIT -> circuitState?.let { CircuitInfo(it, circuitParams) }
+                ExperimentType.MAGNETIC_FIELD -> magneticFieldState?.let { MagneticFieldInfo(it) }
+                ExperimentType.LIGHT_REFRACTION -> refractionState?.let { RefractionInfo(it, refractionParams) }
+                ExperimentType.LENS -> lensState?.let { LensInfo(it, lensParams) }
+                ExperimentType.BROWNIAN_MOTION -> brownianState?.let { BrownianInfo(it) }
+                ExperimentType.GAS_EXPANSION -> gasExpansionState?.let { GasExpansionInfo(it) }
             }
         }
     }
 }
 
 @Composable
-private fun PendulumInfo(
-    state: PendulumState,
-    params: PendulumParameters?
-) {
+private fun InfoSectionLabel(text: String, color: Color = InfoAccent) {
+    Row(
+        modifier = Modifier.padding(top = 4.dp, bottom = 1.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(6.dp)
+                .clip(RoundedCornerShape(3.dp))
+                .background(color)
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = color,
+            fontSize = 10.sp
+        )
+    }
+}
+
+@Composable
+private fun PendulumInfo(state: PendulumState, params: PendulumParameters?) {
     InfoRow("Время", "%.2f с".format(state.time))
     InfoRow("Текущий угол", "%.1f°".format(Math.toDegrees(state.currentAngle.toDouble())))
     InfoRow("Угловая скорость", "%.2f рад/с".format(state.angularVelocity))
     InfoRow("Период", "%.2f с".format(state.period))
-    
-    Spacer(modifier = Modifier.height(4.dp))
-    
-    Text(
-        text = "Энергия",
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.primary
-    )
+    InfoSectionLabel("Энергия", Color(0xFF34D399))
     InfoRow("Кинетическая", "%.3f Дж".format(state.kineticEnergy))
     InfoRow("Потенциальная", "%.3f Дж".format(state.potentialEnergy))
     InfoRow("Полная", "%.3f Дж".format(state.kineticEnergy + state.potentialEnergy))
 }
 
 @Composable
-private fun FreeFallInfo(
-    state: FreeFallState,
-    params: FreeFallParameters?
-) {
+private fun FreeFallInfo(state: FreeFallState, params: FreeFallParameters?) {
     InfoRow("Время", "%.2f с".format(state.time))
     InfoRow("Высота", "%.2f м".format(state.currentHeight))
     InfoRow("Скорость", "%.2f м/с".format(abs(state.currentVelocity)))
     InfoRow("Макс. скорость", "%.2f м/с".format(state.maxVelocity))
-    
     if (state.hasLanded) {
-        Spacer(modifier = Modifier.height(4.dp))
-        Surface(
-            color = MaterialTheme.colorScheme.primaryContainer,
-            shape = RoundedCornerShape(8.dp)
-        ) {
-            Text(
-                text = "Приземление!",
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-        }
+        StatusBadge("Приземление!", Color(0xFF34D399))
     }
-    
     params?.let {
-        Spacer(modifier = Modifier.height(4.dp))
         val theoreticalTime = PhysicsCalculations.fallTime(it.initialHeight)
-        InfoRow("Теоретическое время падения", "%.2f с".format(theoreticalTime))
+        InfoRow("Теор. время падения", "%.2f с".format(theoreticalTime))
     }
 }
 
 @Composable
-private fun CollisionInfo(
-    state: CollisionState,
-    params: CollisionParameters?
-) {
+private fun CollisionInfo(state: CollisionState, params: CollisionParameters?) {
     InfoRow("Время", "%.2f с".format(state.time))
-    
-    Spacer(modifier = Modifier.height(4.dp))
-    Text(
-        text = "Шар 1",
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.primary
-    )
+    InfoSectionLabel("Шар 1", InfoAccent)
     InfoRow("Позиция", "%.2f м".format(state.position1))
     InfoRow("Скорость", "%.2f м/с".format(state.currentVelocity1))
-    
-    Spacer(modifier = Modifier.height(4.dp))
-    Text(
-        text = "Шар 2",
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.secondary
-    )
+    InfoSectionLabel("Шар 2", Color(0xFF0EA5E9))
     InfoRow("Позиция", "%.2f м".format(state.position2))
     InfoRow("Скорость", "%.2f м/с".format(state.currentVelocity2))
-    
-    Spacer(modifier = Modifier.height(4.dp))
-    Text(
-        text = "Законы сохранения",
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.tertiary
-    )
+    InfoSectionLabel("Законы сохранения", Color(0xFFF59E0B))
     InfoRow("Импульс до", "%.2f кг·м/с".format(state.totalMomentumBefore))
     InfoRow("Импульс после", "%.2f кг·м/с".format(state.totalMomentumAfter))
     InfoRow("Энергия до", "%.2f Дж".format(state.totalEnergyBefore))
     InfoRow("Энергия после", "%.2f Дж".format(state.totalEnergyAfter))
-    
     if (state.hasCollided) {
-        Spacer(modifier = Modifier.height(4.dp))
-        Surface(
-            color = MaterialTheme.colorScheme.tertiaryContainer,
-            shape = RoundedCornerShape(8.dp)
-        ) {
-            Text(
-                text = if (params?.isElastic == true) "Упругое столкновение" else "Неупругое столкновение",
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onTertiaryContainer
-            )
-        }
+        val label = if (params?.isElastic == true) "Упругое столкновение" else "Неупругое"
+        StatusBadge(label, Color(0xFFF59E0B))
     }
 }
 
 @Composable
-private fun CircuitInfo(
-    state: CircuitState,
-    params: CircuitParameters?
-) {
+private fun CircuitInfo(state: CircuitState, params: CircuitParameters?) {
     InfoRow("Общее сопротивление", "%.1f Ω".format(state.totalResistance))
     InfoRow("Общий ток", "%.3f А".format(state.totalCurrent))
     InfoRow("Мощность", "%.2f Вт".format(state.power))
-    
-    Spacer(modifier = Modifier.height(4.dp))
-    Text(
-        text = "Напряжения",
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.primary
-    )
+    InfoSectionLabel("Напряжения", InfoAccent)
     InfoRow("U₁", "%.2f В".format(state.voltage1))
     InfoRow("U₂", "%.2f В".format(state.voltage2))
     InfoRow("U₃", "%.2f В".format(state.voltage3))
-    
-    Spacer(modifier = Modifier.height(4.dp))
-    Text(
-        text = "Токи",
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.secondary
-    )
+    InfoSectionLabel("Токи", Color(0xFF0EA5E9))
     InfoRow("I₁", "%.3f А".format(state.current1))
     InfoRow("I₂", "%.3f А".format(state.current2))
     InfoRow("I₃", "%.3f А".format(state.current3))
@@ -233,44 +181,21 @@ private fun CircuitInfo(
 @Composable
 private fun MagneticFieldInfo(state: MagneticFieldState) {
     InfoRow("Время", "%.2f с".format(state.time))
-    
-    Spacer(modifier = Modifier.height(4.dp))
-    Text(
-        text = "Напряжённость поля B",
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.primary
-    )
-    
+    InfoSectionLabel("Напряжённость поля B", Color(0xFF0EA5E9))
     state.fieldStrengthAtDistance.forEach { (distance, field) ->
         InfoRow("r = %.0f см".format(distance * 100), "%.2e Тл".format(field))
     }
 }
 
 @Composable
-private fun RefractionInfo(
-    state: RefractionState,
-    params: RefractionParameters?
-) {
+private fun RefractionInfo(state: RefractionState, params: RefractionParameters?) {
     params?.let {
         InfoRow("Угол падения", "%.1f°".format(Math.toDegrees(it.incidentAngle.toDouble())))
         InfoRow("n₁", "%.2f".format(it.n1))
         InfoRow("n₂", "%.2f".format(it.n2))
     }
-    
-    Spacer(modifier = Modifier.height(4.dp))
-    
     if (state.isTotalInternalReflection) {
-        Surface(
-            color = MaterialTheme.colorScheme.errorContainer,
-            shape = RoundedCornerShape(8.dp)
-        ) {
-            Text(
-                text = "Полное внутреннее отражение",
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onErrorContainer
-            )
-        }
+        StatusBadge("Полное внутреннее отражение", Color(0xFFEF4444))
         state.criticalAngle?.let {
             InfoRow("Критический угол", "%.1f°".format(Math.toDegrees(it.toDouble())))
         }
@@ -282,41 +207,20 @@ private fun RefractionInfo(
 }
 
 @Composable
-private fun LensInfo(
-    state: LensState,
-    params: LensParameters?
-) {
+private fun LensInfo(state: LensState, params: LensParameters?) {
     params?.let {
         InfoRow("Фокусное расстояние", "%.2f м".format(it.focalLength))
-        InfoRow("Расстояние до объекта", "%.2f м".format(it.objectDistance))
+        InfoRow("Расст. до объекта", "%.2f м".format(it.objectDistance))
     }
-    
-    Spacer(modifier = Modifier.height(4.dp))
-    
     if (state.imageDistance.isInfinite()) {
-        Text(
-            text = "Изображение на бесконечности",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        StatusBadge("Изображение на ∞", Color(0xFF0EA5E9))
     } else {
-        InfoRow("Расстояние до изображения", "%.2f м".format(state.imageDistance))
+        InfoRow("Расст. до изображения", "%.2f м".format(state.imageDistance))
         InfoRow("Высота изображения", "%.2f м".format(state.imageHeight))
         InfoRow("Увеличение", "%.2fx".format(abs(state.magnification)))
-        
-        Spacer(modifier = Modifier.height(4.dp))
-        
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (state.isVirtual) {
-                InfoChip("Мнимое")
-            } else {
-                InfoChip("Действительное")
-            }
-            if (state.isInverted) {
-                InfoChip("Перевёрнутое")
-            } else {
-                InfoChip("Прямое")
-            }
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(top = 2.dp)) {
+            MiniChip(if (state.isVirtual) "Мнимое" else "Действительное")
+            MiniChip(if (state.isInverted) "Перевёрнутое" else "Прямое")
         }
     }
 }
@@ -325,8 +229,6 @@ private fun LensInfo(
 private fun BrownianInfo(state: BrownianMotionState) {
     InfoRow("Время", "%.2f с".format(state.time))
     InfoRow("Число частиц", "${state.particlePositions.size}")
-    
-    // Average displacement
     if (state.particleTrails.isNotEmpty() && state.particleTrails[0].size > 1) {
         val firstTrail = state.particleTrails[0]
         val startPos = firstTrail.first()
@@ -342,50 +244,72 @@ private fun BrownianInfo(state: BrownianMotionState) {
 @Composable
 private fun GasExpansionInfo(state: GasExpansionState) {
     InfoRow("Время", "%.2f с".format(state.time))
-    InfoRow("Температура", "%.0f K (%.0f°C)".format(state.currentTemperature, state.currentTemperature - 273f))
+    InfoRow("Температура", "%.0f K".format(state.currentTemperature))
     InfoRow("Объём", "%.2f V₀".format(state.currentVolume))
     InfoRow("Давление", "%.0f Па".format(state.currentPressure))
-    
     if (state.moleculeSpeeds.isNotEmpty()) {
-        val avgSpeed = state.moleculeSpeeds.average()
-        InfoRow("Средняя скорость молекул", "%.0f м/с".format(avgSpeed))
+        InfoRow("Средн. скорость молекул", "%.0f м/с".format(state.moleculeSpeeds.average()))
     }
 }
 
 @Composable
-private fun InfoRow(
-    label: String,
-    value: String
-) {
+private fun InfoRow(label: String, value: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = InfoLabel,
+            fontSize = 11.sp,
+            modifier = Modifier.weight(1f)
         )
         Text(
             text = value,
             style = MaterialTheme.typography.bodySmall,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onSurface
+            fontWeight = FontWeight.SemiBold,
+            color = InfoValue,
+            fontSize = 11.sp,
+            textAlign = TextAlign.End
         )
     }
 }
 
 @Composable
-private fun InfoChip(text: String) {
-    Surface(
-        color = MaterialTheme.colorScheme.secondaryContainer,
-        shape = RoundedCornerShape(6.dp)
+private fun StatusBadge(text: String, color: Color) {
+    Box(
+        modifier = Modifier
+            .padding(top = 2.dp)
+            .clip(RoundedCornerShape(6.dp))
+            .background(color.copy(alpha = 0.14f))
+            .border(1.dp, color.copy(alpha = 0.3f), RoundedCornerShape(6.dp))
+            .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
         Text(
             text = text,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSecondaryContainer
+            fontWeight = FontWeight.SemiBold,
+            color = color,
+            fontSize = 10.sp
+        )
+    }
+}
+
+@Composable
+private fun MiniChip(text: String) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(5.dp))
+            .background(Color.White.copy(alpha = 0.08f))
+            .padding(horizontal = 7.dp, vertical = 3.dp)
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelSmall,
+            color = InfoLabel,
+            fontSize = 10.sp
         )
     }
 }

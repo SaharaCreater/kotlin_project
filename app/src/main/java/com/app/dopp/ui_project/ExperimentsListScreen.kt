@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -213,6 +212,7 @@ private fun ExperimentCard(
     onClick: () -> Unit
 ) {
     val categoryColor = getCategoryColor(experiment.category)
+    val doneGreen = Color(0xFF059669)
 
     Card(
         modifier = Modifier
@@ -220,10 +220,7 @@ private fun ExperimentCard(
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isCompleted)
-                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-            else
-                Color.White
+            containerColor = if (isCompleted) Color(0xFFF0FDF4) else Color.White
         ),
         elevation = CardDefaults.cardElevation(if (isCompleted) 0.dp else 1.dp)
     ) {
@@ -234,11 +231,12 @@ private fun ExperimentCard(
             Box(
                 modifier = Modifier
                     .width(4.dp)
-                    .height(80.dp)
+                    .height(if (isCompleted) 96.dp else 80.dp)
                     .background(
-                        Brush.verticalGradient(
-                            listOf(categoryColor, categoryColor.copy(0.4f))
-                        )
+                        if (isCompleted)
+                            Brush.verticalGradient(listOf(doneGreen, Color(0xFF34D399)))
+                        else
+                            Brush.verticalGradient(listOf(categoryColor, categoryColor.copy(0.4f)))
                     )
             )
             Row(
@@ -253,59 +251,58 @@ private fun ExperimentCard(
                         .size(52.dp)
                         .clip(RoundedCornerShape(14.dp))
                         .background(
-                            Brush.linearGradient(
-                                listOf(categoryColor, categoryColor.copy(0.65f))
-                            )
+                            if (isCompleted)
+                                Brush.linearGradient(listOf(doneGreen, Color(0xFF34D399)))
+                            else
+                                Brush.linearGradient(listOf(categoryColor, categoryColor.copy(0.65f)))
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        getExperimentIcon(experiment),
-                        null,
-                        modifier = Modifier.size(26.dp),
-                        tint = Color.White
-                    )
+                    if (isCompleted) {
+                        Icon(Icons.Default.Check, null, modifier = Modifier.size(28.dp), tint = Color.White)
+                    } else {
+                        Icon(getExperimentIcon(experiment), null, modifier = Modifier.size(26.dp), tint = Color.White)
+                    }
                 }
                 Column(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(3.dp)
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
                         experiment.displayName,
                         style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = if (isCompleted) Color(0xFF065F46) else MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         experiment.description,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = if (isCompleted) Color(0xFF065F46).copy(alpha = 0.65f)
+                                else MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 2
                     )
-                }
-                if (isCompleted) {
-                    Box(
-                        modifier = Modifier
-                            .size(28.dp)
-                            .clip(CircleShape)
-                            .background(
-                                Brush.linearGradient(listOf(Violet800, Violet600))
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            Icons.Default.Check,
-                            null,
-                            tint = Color.White,
-                            modifier = Modifier.size(16.dp)
-                        )
+                    if (isCompleted) {
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(doneGreen.copy(alpha = 0.12f))
+                                .padding(horizontal = 8.dp, vertical = 3.dp)
+                        ) {
+                            Text(
+                                "✓  Пройдено",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = doneGreen,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
-                } else {
-                    Icon(
-                        Icons.Default.ChevronRight,
-                        null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
                 }
+                Icon(
+                    Icons.Default.ChevronRight,
+                    null,
+                    tint = if (isCompleted) doneGreen.copy(alpha = 0.4f)
+                           else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                )
             }
         }
     }
