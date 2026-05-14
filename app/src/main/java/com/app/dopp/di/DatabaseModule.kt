@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.app.dopp.data.ScannerManager
 import com.app.dopp.data.local.AppDatabase
+import com.app.dopp.data.local.AppDatabase.Companion.MIGRATION_1_2
 import com.app.dopp.data.local.PhysicsDao
 import com.app.dopp.data.remote.PhysicsApi
 import dagger.Module
@@ -50,7 +51,7 @@ object DatabaseModule {
             context,
             AppDatabase::class.java,
             "physics_database"
-        ).build()
+        ).addMigrations(MIGRATION_1_2).build()
     }
 
     @Provides
