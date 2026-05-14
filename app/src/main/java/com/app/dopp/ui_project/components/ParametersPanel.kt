@@ -279,10 +279,9 @@ private fun ParameterSlider(
     value: Float,
     onValueChange: (Float) -> Unit,
     valueRange: ClosedFloatingPointRange<Float>,
-    formatValue: (Float) -> String,
-    modifier: Modifier = Modifier
+    formatValue: (Float) -> String
 ) {
-    Column(modifier = modifier.padding(vertical = 2.dp)) {
+    Column(modifier = Modifier.padding(vertical = 2.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -329,11 +328,10 @@ private fun ParameterSlider(
 private fun ToggleParameter(
     label: String,
     checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier
+    onCheckedChange: (Boolean) -> Unit
 ) {
     Row(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 6.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
