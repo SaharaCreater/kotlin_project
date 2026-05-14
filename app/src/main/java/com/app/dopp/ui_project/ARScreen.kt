@@ -43,7 +43,7 @@ import io.github.sceneview.ar.ARScene
 import io.github.sceneview.rememberEngine
 import io.github.sceneview.rememberModelLoader
 import io.github.sceneview.rememberNodes
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 
 private fun generateQrBitmap(content: String, size: Int = 512): Bitmap {
     val hints = mapOf(EncodeHintType.MARGIN to 1)
@@ -86,6 +86,9 @@ fun ARScreen(
     var showInfo by remember { mutableStateOf(false) }
     var showQrDialog by remember { mutableStateOf(false) }
     var hasStartedOnce by remember { mutableStateOf(false) }
+    var arModeEnabled by remember { mutableStateOf(hasCameraPermission) }
+    val paramScope = rememberCoroutineScope()
+    var paramResetJob by remember { mutableStateOf<Job?>(null) }
 
     val qrBitmap = remember(experimentType) {
         val url = "${BuildConfig.SERVER_URL.trimEnd('/')}/#/experiment/${experimentType.name}"
@@ -156,6 +159,16 @@ fun ARScreen(
         startSimulation()
     }
 
+    fun scheduleRestart() {
+        if (hasStartedOnce) {
+            paramResetJob?.cancel()
+            paramResetJob = paramScope.launch {
+                delay(400)
+                startSimulation()
+            }
+        }
+    }
+
     val anySimulationStarted = pendulumState.isRunning || freeFallState.isRunning ||
             collisionState.isRunning || circuitState.isRunning || magneticFieldState.isRunning ||
             refractionState.isRunning || lensState.isRunning || brownianState.isRunning ||
@@ -164,7 +177,7 @@ fun ARScreen(
     Box(modifier = Modifier.fillMaxSize()) {
 
         // ── Layer 0: Background (AR camera or themed gradient) ──────────────
-        if (hasCameraPermission) {
+        if (hasCameraPermission && arModeEnabled) {
             val engine = rememberEngine()
             val modelLoader = rememberModelLoader(engine)
             val childNodes = rememberNodes()
@@ -290,7 +303,8 @@ fun ARScreen(
                 if (hasCameraPermission) {
                     Surface(
                         shape = RoundedCornerShape(12.dp),
-                        color = Color(0xFF00C853).copy(alpha = 0.85f)
+                        color = if (arModeEnabled) Color(0xFF00C853).copy(alpha = 0.85f)
+                                else Color.White.copy(alpha = 0.20f)
                     ) {
                         Text(
                             text = "AR",
@@ -298,6 +312,26 @@ fun ARScreen(
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
+                        )
+                    }
+                }
+                // Camera toggle button
+                if (hasCameraPermission) {
+                    FilledIconButton(
+                        onClick = { arModeEnabled = !arModeEnabled },
+                        colors = IconButtonDefaults.filledIconButtonColors(
+                            containerColor = if (arModeEnabled)
+                                Color(0xFF00C853).copy(alpha = 0.25f)
+                            else
+                                Color.White.copy(alpha = 0.15f)
+                        )
+                    ) {
+                        Icon(
+                            imageVector = if (arModeEnabled) Icons.Default.Videocam
+                                          else Icons.Default.VideocamOff,
+                            contentDescription = if (arModeEnabled) "Отключить камеру"
+                                                 else "Включить камеру",
+                            tint = Color.White
                         )
                     }
                 }
@@ -455,23 +489,23 @@ fun ARScreen(
                 isExpanded = isPanelExpanded,
                 onToggle = { isPanelExpanded = !isPanelExpanded },
                 pendulumParams = pendulumParams,
-                onPendulumParamsChange = { pendulumParams = it },
+                onPendulumParamsChange = { pendulumParams = it; scheduleRestart() },
                 freeFallParams = freeFallParams,
-                onFreeFallParamsChange = { freeFallParams = it },
+                onFreeFallParamsChange = { freeFallParams = it; scheduleRestart() },
                 collisionParams = collisionParams,
-                onCollisionParamsChange = { collisionParams = it },
+                onCollisionParamsChange = { collisionParams = it; scheduleRestart() },
                 circuitParams = circuitParams,
-                onCircuitParamsChange = { circuitParams = it },
+                onCircuitParamsChange = { circuitParams = it; scheduleRestart() },
                 magneticFieldParams = magneticFieldParams,
-                onMagneticFieldParamsChange = { magneticFieldParams = it },
+                onMagneticFieldParamsChange = { magneticFieldParams = it; scheduleRestart() },
                 refractionParams = refractionParams,
-                onRefractionParamsChange = { refractionParams = it },
+                onRefractionParamsChange = { refractionParams = it; scheduleRestart() },
                 lensParams = lensParams,
-                onLensParamsChange = { lensParams = it },
+                onLensParamsChange = { lensParams = it; scheduleRestart() },
                 brownianParams = brownianParams,
-                onBrownianParamsChange = { brownianParams = it },
+                onBrownianParamsChange = { brownianParams = it; scheduleRestart() },
                 gasExpansionParams = gasExpansionParams,
-                onGasExpansionParamsChange = { gasExpansionParams = it }
+                onGasExpansionParamsChange = { gasExpansionParams = it; scheduleRestart() }
             )
         }
     }

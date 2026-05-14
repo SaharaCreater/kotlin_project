@@ -2,11 +2,13 @@ package com.app.dopp.ui_project
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -246,22 +248,43 @@ private fun ExperimentCard(
                 horizontalArrangement = Arrangement.spacedBy(14.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(52.dp)
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(
-                            if (isCompleted)
-                                Brush.linearGradient(listOf(doneGreen, Color(0xFF34D399)))
-                            else
-                                Brush.linearGradient(listOf(categoryColor, categoryColor.copy(0.65f)))
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
+                Box(contentAlignment = Alignment.BottomEnd) {
+                    Box(
+                        modifier = Modifier
+                            .size(52.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(
+                                if (isCompleted)
+                                    Brush.linearGradient(listOf(doneGreen.copy(0.75f), Color(0xFF34D399).copy(0.75f)))
+                                else
+                                    Brush.linearGradient(listOf(categoryColor, categoryColor.copy(0.65f)))
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            getExperimentIcon(experiment),
+                            null,
+                            modifier = Modifier.size(26.dp),
+                            tint = Color.White
+                        )
+                    }
                     if (isCompleted) {
-                        Icon(Icons.Default.Check, null, modifier = Modifier.size(28.dp), tint = Color.White)
-                    } else {
-                        Icon(getExperimentIcon(experiment), null, modifier = Modifier.size(26.dp), tint = Color.White)
+                        Box(
+                            modifier = Modifier
+                                .size(18.dp)
+                                .offset(x = 3.dp, y = 3.dp)
+                                .clip(CircleShape)
+                                .background(doneGreen)
+                                .border(2.dp, Color(0xFFF0FDF4), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Default.Check,
+                                null,
+                                modifier = Modifier.size(10.dp),
+                                tint = Color.White
+                            )
+                        }
                     }
                 }
                 Column(
