@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "4O0Qi2j3d1un6MdQ4v_Mp"
+uri = "file://dopp-server.tar.gz"
+type = "unspecified"
+title = "DoPP Server — архив для загрузки на VPS"
