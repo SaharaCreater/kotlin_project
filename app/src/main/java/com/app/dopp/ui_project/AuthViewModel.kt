@@ -135,4 +135,10 @@ class AuthViewModel @Inject constructor(
     }
 
     fun currentUser(): UserDto? = (_authState.value as? AuthState.Authenticated)?.user
+
+    fun getServerUrl(): String = authPreferences.serverUrl ?: ""
+
+    fun saveServerUrl(url: String) {
+        authPreferences.serverUrl = url.trim()
+    }
 }

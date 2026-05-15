@@ -49,5 +49,9 @@ class AuthPreferences @Inject constructor(
         )
     }
 
+    var serverUrl: String?
+        get() = prefs.getString("server_url", null)
+        set(value) = prefs.edit().putString("server_url", value).apply()
+
     fun clear() = prefs.edit().clear().apply()
 }

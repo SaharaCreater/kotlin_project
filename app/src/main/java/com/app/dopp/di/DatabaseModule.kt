@@ -35,15 +35,35 @@ object DatabaseModule {
             .readTimeout(20, TimeUnit.SECONDS)
             .writeTimeout(20, TimeUnit.SECONDS)
             .addInterceptor { chain ->
+                val customUrl = authPreferences.serverUrl
+                val requestWithHost = if (!customUrl.isNullOrBlank()) {
+                    try {
+                        val parsed = java.net.URI(customUrl.trimEnd('/'))
+                        val scheme = parsed.scheme ?: "https"
+                        val host = parsed.host
+                        if (host != null) {
+                            val port = if (parsed.port != -1) parsed.port
+                                       else if (scheme == "https") 443 else 80
+                            val newUrl = chain.request().url.newBuilder()
+                                .scheme(scheme)
+                                .host(host)
+                                .port(port)
+                                .build()
+                            chain.request().newBuilder().url(newUrl).build()
+                        } else chain.request()
+                    } catch (_: Exception) {
+                        chain.request()
+                    }
+                } else chain.request()
+
                 val token = authPreferences.token
-                val request = if (token != null) {
-                    chain.request().newBuilder()
+                val finalRequest = if (token != null) {
+                    requestWithHost.newBuilder()
                         .header("Authorization", "Bearer $token")
                         .build()
-                } else {
-                    chain.request()
-                }
-                chain.proceed(request)
+                } else requestWithHost
+
+                chain.proceed(finalRequest)
             }
             .build()
     }
