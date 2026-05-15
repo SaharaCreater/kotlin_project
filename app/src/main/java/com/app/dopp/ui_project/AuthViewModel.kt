@@ -42,21 +42,23 @@ class AuthViewModel @Inject constructor(
                 _authState.value = AuthState.Unauthenticated
                 return@launch
             }
+            // Сразу показываем кэшированного пользователя — не ждём сеть
             val cached = authPreferences.getCachedUser()
             if (cached != null) {
                 _authState.value = AuthState.Authenticated(cached)
             }
+            // Пытаемся обновить данные с сервера в фоне
             try {
                 val user = api.getMe()
                 authPreferences.saveUser(user)
                 _authState.value = AuthState.Authenticated(user)
-            } catch (e: retrofit2.HttpException) {
-                if (e.code() == 401) {
+            } catch (_: Exception) {
+                // Сервер недоступен — если есть кэш, остаёмся залогиненными
+                // Если кэша нет и токен невалиден — разлогиниваем
+                if (cached == null) {
                     authPreferences.clear()
                     _authState.value = AuthState.Unauthenticated
                 }
-            } catch (_: Exception) {
-                // Network error — keep cached user, stay authenticated
             }
         }
     }
@@ -133,11 +135,4 @@ class AuthViewModel @Inject constructor(
     }
 
     fun currentUser(): UserDto? = (_authState.value as? AuthState.Authenticated)?.user
-
-    fun getServerUrl(): String = authPreferences.serverUrl ?: com.app.dopp.BuildConfig.SERVER_URL
-
-    fun saveServerUrl(url: String) {
-        val normalized = url.trim().trimEnd('/') + "/"
-        authPreferences.serverUrl = if (normalized == "/" || normalized.isBlank()) null else normalized
-    }
 }

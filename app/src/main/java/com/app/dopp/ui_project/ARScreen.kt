@@ -2,13 +2,10 @@ package com.app.dopp.ui_project
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.view.MotionEvent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -24,36 +21,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import com.app.dopp.BuildConfig
 import com.app.dopp.ar.AR3DRenderer
 import com.app.dopp.physics.*
 import com.app.dopp.ui_project.components.ExperimentInfoPanel
 import com.app.dopp.ui_project.components.ParametersPanel
 import com.google.ar.core.Config
-import com.google.zxing.BarcodeFormat
-import com.google.zxing.EncodeHintType
-import com.google.zxing.qrcode.QRCodeWriter
 import io.github.sceneview.ar.ARScene
 import io.github.sceneview.rememberEngine
 import io.github.sceneview.rememberModelLoader
 import io.github.sceneview.rememberNodes
 import kotlinx.coroutines.*
-
-private fun generateQrBitmap(content: String, size: Int = 512): Bitmap {
-    val hints = mapOf(EncodeHintType.MARGIN to 1)
-    val matrix = QRCodeWriter().encode(content, BarcodeFormat.QR_CODE, size, size, hints)
-    val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-    for (x in 0 until size) for (y in 0 until size) {
-        bmp.setPixel(x, y, if (matrix[x, y]) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
-    }
-    return bmp
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,16 +66,10 @@ fun ARScreen(
     var isRunning by remember { mutableStateOf(false) }
     var isPanelExpanded by remember { mutableStateOf(false) }
     var showInfo by remember { mutableStateOf(false) }
-    var showQrDialog by remember { mutableStateOf(false) }
     var hasStartedOnce by remember { mutableStateOf(false) }
     var arModeEnabled by remember { mutableStateOf(hasCameraPermission) }
     val paramScope = rememberCoroutineScope()
     var paramResetJob by remember { mutableStateOf<Job?>(null) }
-
-    val qrBitmap = remember(experimentType) {
-        val url = "${BuildConfig.SERVER_URL.trimEnd('/')}/#/experiment/${experimentType.name}"
-        generateQrBitmap(url)
-    }
 
     var pendulumParams by remember { mutableStateOf(PendulumParameters()) }
     var freeFallParams by remember { mutableStateOf(FreeFallParameters()) }
@@ -336,14 +312,6 @@ fun ARScreen(
                     }
                 }
                 FilledIconButton(
-                    onClick = { showQrDialog = true },
-                    colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = Color.White.copy(alpha = 0.15f)
-                    )
-                ) {
-                    Icon(Icons.Default.QrCode, "Поделиться QR", tint = Color.White)
-                }
-                FilledIconButton(
                     onClick = { showInfo = !showInfo },
                     colors = IconButtonDefaults.filledIconButtonColors(
                         containerColor = if (showInfo)
@@ -510,41 +478,4 @@ fun ARScreen(
         }
     }
 
-    if (showQrDialog) {
-        AlertDialog(
-            onDismissRequest = { showQrDialog = false },
-            title = {
-                Text(
-                    text = experimentType.displayName,
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            text = {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Text(
-                        text = "Отсканируйте QR-код для открытия эксперимента в веб-приложении",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
-                    Image(
-                        bitmap = qrBitmap.asImageBitmap(),
-                        contentDescription = "QR код эксперимента",
-                        modifier = Modifier
-                            .fillMaxWidth(0.8f)
-                            .aspectRatio(1f)
-                            .clip(RoundedCornerShape(8.dp))
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showQrDialog = false }) {
-                    Text("Закрыть")
-                }
-            }
-        )
-    }
 }

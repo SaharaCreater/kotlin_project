@@ -17,31 +17,11 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
-import okhttp3.Interceptor
 import okhttp3.OkHttpClient
-import okhttp3.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
-
-class HostSelectionInterceptor(private val authPreferences: AuthPreferences) : Interceptor {
-    override fun intercept(chain: Interceptor.Chain): Response {
-        val customUrl = authPreferences.serverUrl?.toHttpUrlOrNull()
-        val request = if (customUrl != null) {
-            val newUrl = chain.request().url.newBuilder()
-                .scheme(customUrl.scheme)
-                .host(customUrl.host)
-                .port(customUrl.port)
-                .build()
-            chain.request().newBuilder().url(newUrl).build()
-        } else {
-            chain.request()
-        }
-        return chain.proceed(request)
-    }
-}
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -51,18 +31,17 @@ object DatabaseModule {
     @Singleton
     fun provideOkHttpClient(authPreferences: AuthPreferences): OkHttpClient {
         return OkHttpClient.Builder()
-            .connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(15, TimeUnit.SECONDS)
-            .addInterceptor(HostSelectionInterceptor(authPreferences))
+            .connectTimeout(20, TimeUnit.SECONDS)
+            .readTimeout(20, TimeUnit.SECONDS)
+            .writeTimeout(20, TimeUnit.SECONDS)
             .addInterceptor { chain ->
-                val original = chain.request()
                 val token = authPreferences.token
                 val request = if (token != null) {
-                    original.newBuilder()
+                    chain.request().newBuilder()
                         .header("Authorization", "Bearer $token")
                         .build()
                 } else {
-                    original
+                    chain.request()
                 }
                 chain.proceed(request)
             }
