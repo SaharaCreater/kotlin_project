@@ -20,7 +20,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         val serverUrl = project.findProperty("SERVER_URL") as? String
-            ?: "https://8dd8692d-1be6-46ac-a26c-4f0bf350fd19-00-7qaxpjz8o7ar.sisko.replit.dev/"
+            ?: "http://85.198.67.191:5000/"
         buildConfigField("String", "SERVER_URL", "\"$serverUrl\"")
     }
 

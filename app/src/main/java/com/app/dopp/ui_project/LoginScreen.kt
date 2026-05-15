@@ -103,7 +103,7 @@ fun LoginScreen(
                         value = serverUrlInput,
                         onValueChange = { serverUrlInput = it },
                         label = { Text("URL сервера") },
-                        placeholder = { Text("https://example.replit.dev/") },
+                        placeholder = { Text("http://85.198.67.191:5000/") },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         singleLine = true,
