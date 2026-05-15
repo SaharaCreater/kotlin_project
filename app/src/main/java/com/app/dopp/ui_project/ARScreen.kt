@@ -195,8 +195,7 @@ fun ARScreen(
                     override fun onScaleEnd(detector: io.github.sceneview.gesture.ScaleGestureDetector, e: MotionEvent, node: io.github.sceneview.node.Node?) {}
                 }
             )
-            // Light vignette — keeps camera visible while canvas elements remain readable
-            Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.18f)))
+            // No overlay — camera feed is fully visible, simulation canvas renders on top
         } else {
             // Physics-themed gradient background
             Box(

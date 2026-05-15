@@ -33,9 +33,10 @@ import com.app.dopp.ui_project.components.OfflineBanner
 fun ExperimentsListScreen(
     onExperimentSelected: (ExperimentType) -> Unit,
     completedIds: Set<String> = emptySet(),
-    isOnline: Boolean = true
+    isOnline: Boolean = true,
+    initialCategory: ExperimentCategory? = null
 ) {
-    var selectedCategory by remember { mutableStateOf<ExperimentCategory?>(null) }
+    var selectedCategory by remember { mutableStateOf<ExperimentCategory?>(initialCategory) }
     var searchQuery      by remember { mutableStateOf("") }
 
     val filteredExperiments = remember(selectedCategory, searchQuery) {

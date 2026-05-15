@@ -34,6 +34,7 @@ private val TOTAL_EXPERIMENTS = ExperimentType.entries.size
 @Composable
 fun MainScreen(
     onExperimentsClick: () -> Unit,
+    onCategoryClick: (ExperimentCategory) -> Unit = {},
     onScannerClick: () -> Unit = {},
     completedCount: Int = 0,
     userName: String? = null,
@@ -154,7 +155,7 @@ fun MainScreen(
                         ),
                         experimentsCount = 3,
                         modifier = Modifier.weight(1f),
-                        onClick = onExperimentsClick
+                        onClick = { onCategoryClick(ExperimentCategory.MECHANICS) }
                     )
                     CategoryCard(
                         category = ExperimentCategory.ELECTRICITY,
@@ -164,7 +165,7 @@ fun MainScreen(
                         ),
                         experimentsCount = 2,
                         modifier = Modifier.weight(1f),
-                        onClick = onExperimentsClick
+                        onClick = { onCategoryClick(ExperimentCategory.ELECTRICITY) }
                     )
                 }
                 Row(
@@ -179,7 +180,7 @@ fun MainScreen(
                         ),
                         experimentsCount = 2,
                         modifier = Modifier.weight(1f),
-                        onClick = onExperimentsClick
+                        onClick = { onCategoryClick(ExperimentCategory.OPTICS) }
                     )
                     CategoryCard(
                         category = ExperimentCategory.THERMODYNAMICS,
@@ -189,7 +190,7 @@ fun MainScreen(
                         ),
                         experimentsCount = 2,
                         modifier = Modifier.weight(1f),
-                        onClick = onExperimentsClick
+                        onClick = { onCategoryClick(ExperimentCategory.THERMODYNAMICS) }
                     )
                 }
             }

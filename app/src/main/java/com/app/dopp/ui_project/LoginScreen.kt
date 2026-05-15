@@ -38,7 +38,6 @@ import com.app.dopp.ui.theme.DarkSurface
 import com.app.dopp.ui.theme.Sky500
 import com.app.dopp.ui.theme.Violet600
 import com.app.dopp.ui.theme.Violet800
-import androidx.compose.ui.window.Dialog
 
 @Composable
 fun LoginScreen(
@@ -57,89 +56,13 @@ fun LoginScreen(
     val focusManager = LocalFocusManager.current
 
     var loginEmail    by remember { mutableStateOf("") }
-    var loginPassword by remember { mutableStateOf("") }
+    var loginPass     by remember { mutableStateOf("") }
     var loginPassVis  by remember { mutableStateOf(false) }
 
     var regName     by remember { mutableStateOf("") }
     var regEmail    by remember { mutableStateOf("") }
     var regPassword by remember { mutableStateOf("") }
     var regPassVis  by remember { mutableStateOf(false) }
-
-    var showServerDialog by remember { mutableStateOf(false) }
-    var serverUrlInput   by remember { mutableStateOf(viewModel.getServerUrl()) }
-
-    if (showServerDialog) {
-        Dialog(onDismissRequest = { showServerDialog = false }) {
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(8.dp)
-            ) {
-                Column(modifier = Modifier.padding(24.dp)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.Settings,
-                            contentDescription = null,
-                            tint = Violet800,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Text(
-                            "Адрес сервера",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp
-                        )
-                    }
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        "Введите URL вашего сервера DoPP",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF6B7280)
-                    )
-                    Spacer(Modifier.height(16.dp))
-                    OutlinedTextField(
-                        value = serverUrlInput,
-                        onValueChange = { serverUrlInput = it },
-                        label = { Text("URL сервера") },
-                        placeholder = { Text("http://85.198.67.191:5000/") },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Uri,
-                            imeAction = ImeAction.Done
-                        ),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Violet800,
-                            focusedLabelColor = Violet800
-                        )
-                    )
-                    Spacer(Modifier.height(20.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        OutlinedButton(
-                            onClick = { showServerDialog = false },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(10.dp)
-                        ) { Text("Отмена") }
-                        Button(
-                            onClick = {
-                                viewModel.saveServerUrl(serverUrlInput)
-                                showServerDialog = false
-                            },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Violet800)
-                        ) { Text("Сохранить") }
-                    }
-                }
-            }
-        }
-    }
 
     LaunchedEffect(selectedTab) { viewModel.clearError() }
 
@@ -280,28 +203,29 @@ fun LoginScreen(
                             onValueChange = { loginEmail = it },
                             label = "Email",
                             icon = Icons.Default.Email,
+                            keyboardType = KeyboardType.Email,
                             imeAction = ImeAction.Next,
                             onIme = { focusManager.moveFocus(FocusDirection.Down) }
                         )
                         Spacer(Modifier.height(12.dp))
                         AuthPasswordField(
-                            value = loginPassword,
-                            onValueChange = { loginPassword = it },
+                            value = loginPass,
+                            onValueChange = { loginPass = it },
                             label = "Пароль",
                             visible = loginPassVis,
                             onToggle = { loginPassVis = !loginPassVis },
                             imeAction = ImeAction.Done,
                             onIme = {
                                 focusManager.clearFocus()
-                                viewModel.login(loginEmail, loginPassword)
+                                viewModel.login(loginEmail, loginPass)
                             }
                         )
                         Spacer(Modifier.height(24.dp))
                         GradientButton(
                             text = "Войти",
-                            onClick = { viewModel.login(loginEmail, loginPassword) },
+                            onClick = { viewModel.login(loginEmail, loginPass) },
                             isLoading = isLoading,
-                            enabled = !isLoading && loginEmail.isNotBlank() && loginPassword.isNotBlank(),
+                            enabled = !isLoading && loginEmail.isNotBlank() && loginPass.isNotBlank(),
                             modifier = Modifier.fillMaxWidth()
                         )
                     } else {
@@ -319,6 +243,7 @@ fun LoginScreen(
                             onValueChange = { regEmail = it },
                             label = "Email",
                             icon = Icons.Default.Email,
+                            keyboardType = KeyboardType.Email,
                             imeAction = ImeAction.Next,
                             onIme = { focusManager.moveFocus(FocusDirection.Down) }
                         )
@@ -347,30 +272,7 @@ fun LoginScreen(
                 }
             }
 
-            Spacer(Modifier.height(24.dp))
-
-            Row(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(10.dp))
-                    .clickable { showServerDialog = true }
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Icon(
-                    Icons.Default.Settings,
-                    contentDescription = null,
-                    tint = Color.White.copy(alpha = 0.5f),
-                    modifier = Modifier.size(14.dp)
-                )
-                Text(
-                    text = "Настройки сервера",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = Color.White.copy(alpha = 0.5f)
-                )
-            }
-
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(32.dp))
         }
     }
 }
@@ -396,8 +298,8 @@ private fun AuthField(
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = imeAction),
         keyboardActions = KeyboardActions(onNext = { onIme() }, onDone = { onIme() }),
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor     = Violet800,
-            focusedLabelColor      = Violet800,
+            focusedBorderColor      = Violet800,
+            focusedLabelColor       = Violet800,
             focusedLeadingIconColor = Violet800
         )
     )

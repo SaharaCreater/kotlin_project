@@ -26,6 +26,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.app.dopp.physics.ExperimentCategory
 import com.app.dopp.physics.ExperimentType
 
 @Composable
@@ -106,7 +107,9 @@ fun MainAppScreen(outerNavController: NavHostController) {
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.Science, contentDescription = null) },
                     label = { Text("Эксперименты") },
-                    selected = currentDestination?.hierarchy?.any { it.route == "experiments" } == true,
+                    selected = currentDestination?.hierarchy?.any {
+                        it.route?.startsWith("experiments") == true
+                    } == true,
                     onClick = {
                         innerNavController.navigate("experiments") {
                             popUpTo(innerNavController.graph.findStartDestination().id) { saveState = true }
@@ -156,6 +159,12 @@ fun MainAppScreen(outerNavController: NavHostController) {
                             launchSingleTop = true
                         }
                     },
+                    onCategoryClick = { category ->
+                        innerNavController.navigate("experiments?category=${category.name}") {
+                            popUpTo(innerNavController.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                        }
+                    },
                     onScannerClick = { physicsViewModel.onScanClick(outerNavController) },
                     completedCount = completedCount,
                     userName = userName,
@@ -163,7 +172,20 @@ fun MainAppScreen(outerNavController: NavHostController) {
                 )
             }
 
-            composable("experiments") {
+            composable(
+                route = "experiments?category={category}",
+                arguments = listOf(
+                    navArgument("category") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    }
+                )
+            ) { backStackEntry ->
+                val categoryName = backStackEntry.arguments?.getString("category")
+                val initialCategory = categoryName?.let {
+                    try { ExperimentCategory.valueOf(it) } catch (_: Exception) { null }
+                }
                 val completedIds by physicsViewModel.completedIds.collectAsStateWithLifecycle()
                 val isOnline by physicsViewModel.isOnline.collectAsStateWithLifecycle()
                 ExperimentsListScreen(
@@ -171,7 +193,8 @@ fun MainAppScreen(outerNavController: NavHostController) {
                         outerNavController.navigate("ar/${experimentType.name}")
                     },
                     completedIds = completedIds,
-                    isOnline = isOnline
+                    isOnline = isOnline,
+                    initialCategory = initialCategory
                 )
             }
 
