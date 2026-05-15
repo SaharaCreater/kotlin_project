@@ -2,9 +2,12 @@ package com.app.dopp.ui_project
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.view.MotionEvent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,20 +25,53 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import com.app.dopp.ar.AR3DRenderer
 import com.app.dopp.physics.*
 import com.app.dopp.ui_project.components.ExperimentInfoPanel
 import com.app.dopp.ui_project.components.ParametersPanel
-import com.google.ar.core.Config
-import io.github.sceneview.ar.ARScene
-import io.github.sceneview.rememberEngine
-import io.github.sceneview.rememberModelLoader
-import io.github.sceneview.rememberNodes
 import kotlinx.coroutines.*
+
+// ─── CameraX live preview ────────────────────────────────────────────────────
+
+@Composable
+private fun CameraPreview(modifier: Modifier = Modifier) {
+    val context        = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    AndroidView(
+        factory = { ctx ->
+            val previewView = PreviewView(ctx).apply {
+                scaleType = PreviewView.ScaleType.FILL_CENTER
+            }
+            val future = ProcessCameraProvider.getInstance(ctx)
+            future.addListener({
+                try {
+                    val provider = future.get()
+                    val preview  = Preview.Builder().build().also {
+                        it.setSurfaceProvider(previewView.surfaceProvider)
+                    }
+                    provider.unbindAll()
+                    provider.bindToLifecycle(
+                        lifecycleOwner,
+                        CameraSelector.DEFAULT_BACK_CAMERA,
+                        preview
+                    )
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }, ContextCompat.getMainExecutor(ctx))
+            previewView
+        },
+        modifier = modifier
+    )
+}
+
+// ─── Main AR screen ──────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,19 +97,12 @@ fun ARScreen(
     }
 
     val simulationEngine = remember { SimulationEngine() }
-    @Suppress("unused")
-    val renderer = remember { AR3DRenderer(context) }
-
-    // ── AR engine objects — MUST be called unconditionally (Compose rules) ──
-    val engine      = rememberEngine()
-    val modelLoader = rememberModelLoader(engine)
-    val childNodes  = rememberNodes()
 
     var isRunning       by remember { mutableStateOf(false) }
     var isPanelExpanded by remember { mutableStateOf(false) }
     var showInfo        by remember { mutableStateOf(false) }
     var hasStartedOnce  by remember { mutableStateOf(false) }
-    var arModeEnabled   by remember { mutableStateOf(hasCameraPermission) }
+    var arModeEnabled   by remember { mutableStateOf(true) }
     val paramScope      = rememberCoroutineScope()
     var paramResetJob   by remember { mutableStateOf<Job?>(null) }
 
@@ -156,62 +185,26 @@ fun ARScreen(
             refractionState.isRunning || lensState.isRunning || brownianState.isRunning ||
             gasExpansionState.isRunning
 
+    val showCamera = hasCameraPermission && arModeEnabled
+
     Box(modifier = Modifier.fillMaxSize()) {
 
-        // ── Layer 0: Background (AR camera or themed gradient) ──────────────
-        if (hasCameraPermission && arModeEnabled) {
-            ARScene(
-                modifier = Modifier.fillMaxSize(),
-                engine = engine,
-                modelLoader = modelLoader,
-                childNodes = childNodes,
-                planeRenderer = false,
-                sessionConfiguration = { session, config ->
-                    config.depthMode = when (session.isDepthModeSupported(Config.DepthMode.AUTOMATIC)) {
-                        true -> Config.DepthMode.AUTOMATIC
-                        else -> Config.DepthMode.DISABLED
-                    }
-                    config.instantPlacementMode = Config.InstantPlacementMode.LOCAL_Y_UP
-                    config.lightEstimationMode = Config.LightEstimationMode.ENVIRONMENTAL_HDR
-                },
-                onGestureListener = object : io.github.sceneview.gesture.GestureDetector.OnGestureListener {
-                    override fun onDown(e: MotionEvent, node: io.github.sceneview.node.Node?) {}
-                    override fun onShowPress(e: MotionEvent, node: io.github.sceneview.node.Node?) {}
-                    override fun onSingleTapUp(e: MotionEvent, node: io.github.sceneview.node.Node?) {}
-                    override fun onSingleTapConfirmed(e: MotionEvent, node: io.github.sceneview.node.Node?) {
-                        if (!anySimulationStarted) startSimulation()
-                    }
-                    override fun onDoubleTap(e: MotionEvent, node: io.github.sceneview.node.Node?) {}
-                    override fun onDoubleTapEvent(e: MotionEvent, node: io.github.sceneview.node.Node?) {}
-                    override fun onContextClick(e: MotionEvent, node: io.github.sceneview.node.Node?) {}
-                    override fun onLongPress(e: MotionEvent, node: io.github.sceneview.node.Node?) {}
-                    override fun onFling(e1: MotionEvent?, e2: MotionEvent, node: io.github.sceneview.node.Node?, velocity: dev.romainguy.kotlin.math.Float2) {}
-                    override fun onScroll(e1: MotionEvent?, e2: MotionEvent, node: io.github.sceneview.node.Node?, distance: dev.romainguy.kotlin.math.Float2) {}
-                    override fun onMoveBegin(detector: io.github.sceneview.gesture.MoveGestureDetector, e: MotionEvent, node: io.github.sceneview.node.Node?) {}
-                    override fun onMove(detector: io.github.sceneview.gesture.MoveGestureDetector, e: MotionEvent, node: io.github.sceneview.node.Node?) {}
-                    override fun onMoveEnd(detector: io.github.sceneview.gesture.MoveGestureDetector, e: MotionEvent, node: io.github.sceneview.node.Node?) {}
-                    override fun onRotateBegin(detector: io.github.sceneview.gesture.RotateGestureDetector, e: MotionEvent, node: io.github.sceneview.node.Node?) {}
-                    override fun onRotate(detector: io.github.sceneview.gesture.RotateGestureDetector, e: MotionEvent, node: io.github.sceneview.node.Node?) {}
-                    override fun onRotateEnd(detector: io.github.sceneview.gesture.RotateGestureDetector, e: MotionEvent, node: io.github.sceneview.node.Node?) {}
-                    override fun onScaleBegin(detector: io.github.sceneview.gesture.ScaleGestureDetector, e: MotionEvent, node: io.github.sceneview.node.Node?) {}
-                    override fun onScale(detector: io.github.sceneview.gesture.ScaleGestureDetector, e: MotionEvent, node: io.github.sceneview.node.Node?) {}
-                    override fun onScaleEnd(detector: io.github.sceneview.gesture.ScaleGestureDetector, e: MotionEvent, node: io.github.sceneview.node.Node?) {}
-                }
-            )
+        // ── Layer 0: Background — camera preview OR gradient ─────────────────
+        if (showCamera) {
+            CameraPreview(modifier = Modifier.fillMaxSize())
         } else {
-            // Physics-themed gradient background
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(Color(0xFF0D1B2A), Color(0xFF1B2D3E), Color(0xFF0A1628))
+                            listOf(Color(0xFF0D1B2A), Color(0xFF1B2D3E), Color(0xFF0A1628))
                         )
                     )
             )
         }
 
-        // ── Layer 1: Simulation canvas — ALWAYS VISIBLE ─────────────────────
+        // ── Layer 1: Simulation canvas ───────────────────────────────────────
         SimulationCanvas(
             experimentType = experimentType,
             pendulumState = pendulumState,
@@ -228,7 +221,7 @@ fun ARScreen(
             lensParams = lensParams,
             brownianState = brownianState,
             gasExpansionState = gasExpansionState,
-            isARMode = hasCameraPermission && arModeEnabled,
+            isARMode = showCamera,
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.85f)
@@ -242,7 +235,7 @@ fun ARScreen(
                 )
         )
 
-        // ── Layer 2: Top bar ────────────────────────────────────────────────
+        // ── Layer 2: Top bar ─────────────────────────────────────────────────
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -252,12 +245,9 @@ fun ARScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             FilledIconButton(
-                onClick = {
-                    isRunning = false
-                    onBackClick()
-                },
+                onClick = { isRunning = false; onBackClick() },
                 colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = Color.White.copy(alpha = 0.15f)
+                    containerColor = Color.Black.copy(alpha = 0.35f)
                 )
             ) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, "Назад", tint = Color.White)
@@ -277,7 +267,7 @@ fun ARScreen(
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                // AR indicator badge
+                // AR badge
                 if (hasCameraPermission) {
                     Surface(
                         shape = RoundedCornerShape(12.dp),
@@ -293,33 +283,37 @@ fun ARScreen(
                         )
                     }
                 }
-                // Camera toggle button
-                if (hasCameraPermission) {
-                    FilledIconButton(
-                        onClick = { arModeEnabled = !arModeEnabled },
-                        colors = IconButtonDefaults.filledIconButtonColors(
-                            containerColor = if (arModeEnabled)
-                                Color(0xFF00C853).copy(alpha = 0.25f)
-                            else
-                                Color.White.copy(alpha = 0.15f)
-                        )
-                    ) {
-                        Icon(
-                            imageVector = if (arModeEnabled) Icons.Default.Videocam
-                                          else Icons.Default.VideocamOff,
-                            contentDescription = if (arModeEnabled) "Отключить камеру"
-                                                 else "Включить камеру",
-                            tint = Color.White
-                        )
-                    }
+                // Camera toggle
+                FilledIconButton(
+                    onClick = {
+                        if (hasCameraPermission) {
+                            arModeEnabled = !arModeEnabled
+                        } else {
+                            permissionLauncher.launch(Manifest.permission.CAMERA)
+                        }
+                    },
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        containerColor = if (showCamera)
+                            Color(0xFF00C853).copy(alpha = 0.35f)
+                        else
+                            Color.Black.copy(alpha = 0.35f)
+                    )
+                ) {
+                    Icon(
+                        imageVector = if (showCamera) Icons.Default.Videocam
+                                      else Icons.Default.VideocamOff,
+                        contentDescription = "Камера",
+                        tint = Color.White
+                    )
                 }
+                // Info
                 FilledIconButton(
                     onClick = { showInfo = !showInfo },
                     colors = IconButtonDefaults.filledIconButtonColors(
                         containerColor = if (showInfo)
                             MaterialTheme.colorScheme.primary.copy(alpha = 0.9f)
                         else
-                            Color.White.copy(alpha = 0.15f)
+                            Color.Black.copy(alpha = 0.35f)
                     )
                 ) {
                     Icon(Icons.Default.Info, "Данные", tint = Color.White)
@@ -327,7 +321,7 @@ fun ARScreen(
             }
         }
 
-        // ── Layer 3: Info panel (top right) ─────────────────────────────────
+        // ── Layer 3: Info panel ──────────────────────────────────────────────
         AnimatedVisibility(
             visible = showInfo,
             modifier = Modifier
@@ -357,7 +351,7 @@ fun ARScreen(
             )
         }
 
-        // ── Layer 4: Start prompt (when simulation not yet started) ──────────
+        // ── Layer 4: Start prompt ────────────────────────────────────────────
         if (!anySimulationStarted) {
             Box(
                 modifier = Modifier
@@ -370,35 +364,36 @@ fun ARScreen(
                 ) {
                     Surface(
                         shape = CircleShape,
-                        color = Color.White.copy(alpha = 0.12f)
+                        color = Color.Black.copy(alpha = 0.30f)
                     ) {
                         Icon(
                             imageVector = Icons.Default.PlayCircle,
                             contentDescription = null,
-                            modifier = Modifier
-                                .padding(16.dp)
-                                .size(40.dp),
-                            tint = Color.White.copy(alpha = 0.7f)
+                            modifier = Modifier.padding(16.dp).size(40.dp),
+                            tint = Color.White.copy(alpha = 0.85f)
                         )
                     }
                     Text(
-                        text = "Нажмите на экран или\nкнопку ▶ для запуска",
-                        color = Color.White.copy(alpha = 0.65f),
+                        text = "Нажмите на экран или ▶ для запуска",
+                        color = Color.White,
                         style = MaterialTheme.typography.bodySmall,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .background(Color.Black.copy(alpha = 0.30f), RoundedCornerShape(8.dp))
+                            .padding(horizontal = 12.dp, vertical = 4.dp)
                     )
                 }
             }
         }
 
-        // ── Layer 5: Control buttons + parameters panel (bottom) ─────────────
+        // ── Layer 5: Controls + parameters panel ─────────────────────────────
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Parameters panel — slides up/down on demand, fully hidden when collapsed
+            // Parameters panel — fully hidden until the tune button is pressed
             AnimatedVisibility(
                 visible = isPanelExpanded,
                 enter = slideInVertically { it } + fadeIn(),
@@ -429,7 +424,7 @@ fun ARScreen(
                 )
             }
 
-            // Play/Pause + Reset + Settings toggle row
+            // Control row: Reset | Play/Pause | Settings
             Row(
                 modifier = Modifier
                     .padding(bottom = 24.dp)
@@ -439,7 +434,6 @@ fun ARScreen(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Reset
                 IconButton(
                     onClick = { resetSimulation() },
                     modifier = Modifier
@@ -449,7 +443,6 @@ fun ARScreen(
                     Icon(Icons.Default.Refresh, "Сброс", tint = Color.White)
                 }
 
-                // Play / Pause
                 FilledIconButton(
                     onClick = {
                         if (isRunning) {
@@ -470,7 +463,6 @@ fun ARScreen(
                     )
                 }
 
-                // Parameters toggle
                 IconButton(
                     onClick = { isPanelExpanded = !isPanelExpanded },
                     modifier = Modifier
