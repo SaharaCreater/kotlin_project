@@ -280,7 +280,6 @@ fun LoginScreen(
                             onValueChange = { loginEmail = it },
                             label = "Email",
                             icon = Icons.Default.Email,
-                            keyboardType = KeyboardType.Email,
                             imeAction = ImeAction.Next,
                             onIme = { focusManager.moveFocus(FocusDirection.Down) }
                         )
@@ -320,7 +319,6 @@ fun LoginScreen(
                             onValueChange = { regEmail = it },
                             label = "Email",
                             icon = Icons.Default.Email,
-                            keyboardType = KeyboardType.Email,
                             imeAction = ImeAction.Next,
                             onIme = { focusManager.moveFocus(FocusDirection.Down) }
                         )
