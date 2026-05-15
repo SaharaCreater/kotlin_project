@@ -61,35 +61,41 @@ fun ARScreen(
     }
 
     val simulationEngine = remember { SimulationEngine() }
+    @Suppress("unused")
     val renderer = remember { AR3DRenderer(context) }
 
-    var isRunning by remember { mutableStateOf(false) }
+    // ── AR engine objects — MUST be called unconditionally (Compose rules) ──
+    val engine      = rememberEngine()
+    val modelLoader = rememberModelLoader(engine)
+    val childNodes  = rememberNodes()
+
+    var isRunning       by remember { mutableStateOf(false) }
     var isPanelExpanded by remember { mutableStateOf(false) }
-    var showInfo by remember { mutableStateOf(false) }
-    var hasStartedOnce by remember { mutableStateOf(false) }
-    var arModeEnabled by remember { mutableStateOf(hasCameraPermission) }
-    val paramScope = rememberCoroutineScope()
-    var paramResetJob by remember { mutableStateOf<Job?>(null) }
+    var showInfo        by remember { mutableStateOf(false) }
+    var hasStartedOnce  by remember { mutableStateOf(false) }
+    var arModeEnabled   by remember { mutableStateOf(hasCameraPermission) }
+    val paramScope      = rememberCoroutineScope()
+    var paramResetJob   by remember { mutableStateOf<Job?>(null) }
 
-    var pendulumParams by remember { mutableStateOf(PendulumParameters()) }
-    var freeFallParams by remember { mutableStateOf(FreeFallParameters()) }
-    var collisionParams by remember { mutableStateOf(CollisionParameters()) }
-    var circuitParams by remember { mutableStateOf(CircuitParameters()) }
+    var pendulumParams      by remember { mutableStateOf(PendulumParameters()) }
+    var freeFallParams      by remember { mutableStateOf(FreeFallParameters()) }
+    var collisionParams     by remember { mutableStateOf(CollisionParameters()) }
+    var circuitParams       by remember { mutableStateOf(CircuitParameters()) }
     var magneticFieldParams by remember { mutableStateOf(MagneticFieldParameters()) }
-    var refractionParams by remember { mutableStateOf(RefractionParameters()) }
-    var lensParams by remember { mutableStateOf(LensParameters()) }
-    var brownianParams by remember { mutableStateOf(BrownianMotionParameters()) }
-    var gasExpansionParams by remember { mutableStateOf(GasExpansionParameters()) }
+    var refractionParams    by remember { mutableStateOf(RefractionParameters()) }
+    var lensParams          by remember { mutableStateOf(LensParameters()) }
+    var brownianParams      by remember { mutableStateOf(BrownianMotionParameters()) }
+    var gasExpansionParams  by remember { mutableStateOf(GasExpansionParameters()) }
 
-    var pendulumState by remember { mutableStateOf(PendulumState()) }
-    var freeFallState by remember { mutableStateOf(FreeFallState()) }
-    var collisionState by remember { mutableStateOf(CollisionState()) }
-    var circuitState by remember { mutableStateOf(CircuitState()) }
+    var pendulumState      by remember { mutableStateOf(PendulumState()) }
+    var freeFallState      by remember { mutableStateOf(FreeFallState()) }
+    var collisionState     by remember { mutableStateOf(CollisionState()) }
+    var circuitState       by remember { mutableStateOf(CircuitState()) }
     var magneticFieldState by remember { mutableStateOf(MagneticFieldState()) }
-    var refractionState by remember { mutableStateOf(RefractionState()) }
-    var lensState by remember { mutableStateOf(LensState()) }
-    var brownianState by remember { mutableStateOf(BrownianMotionState()) }
-    var gasExpansionState by remember { mutableStateOf(GasExpansionState()) }
+    var refractionState    by remember { mutableStateOf(RefractionState()) }
+    var lensState          by remember { mutableStateOf(LensState()) }
+    var brownianState      by remember { mutableStateOf(BrownianMotionState()) }
+    var gasExpansionState  by remember { mutableStateOf(GasExpansionState()) }
 
     LaunchedEffect(isRunning, experimentType) {
         while (isRunning) {
@@ -154,9 +160,6 @@ fun ARScreen(
 
         // ── Layer 0: Background (AR camera or themed gradient) ──────────────
         if (hasCameraPermission && arModeEnabled) {
-            val engine = rememberEngine()
-            val modelLoader = rememberModelLoader(engine)
-            val childNodes = rememberNodes()
             ARScene(
                 modifier = Modifier.fillMaxSize(),
                 engine = engine,
@@ -195,7 +198,6 @@ fun ARScreen(
                     override fun onScaleEnd(detector: io.github.sceneview.gesture.ScaleGestureDetector, e: MotionEvent, node: io.github.sceneview.node.Node?) {}
                 }
             )
-            // No overlay — camera feed is fully visible, simulation canvas renders on top
         } else {
             // Physics-themed gradient background
             Box(
@@ -360,7 +362,7 @@ fun ARScreen(
             Box(
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .padding(bottom = 140.dp)
+                    .padding(bottom = 80.dp)
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -373,7 +375,9 @@ fun ARScreen(
                         Icon(
                             imageVector = Icons.Default.PlayCircle,
                             contentDescription = null,
-                            modifier = Modifier.padding(16.dp).size(40.dp),
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .size(40.dp),
                             tint = Color.White.copy(alpha = 0.7f)
                         )
                     }
@@ -394,10 +398,41 @@ fun ARScreen(
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Play/Pause + Reset row
+            // Parameters panel — slides up/down on demand, fully hidden when collapsed
+            AnimatedVisibility(
+                visible = isPanelExpanded,
+                enter = slideInVertically { it } + fadeIn(),
+                exit = slideOutVertically { it } + fadeOut()
+            ) {
+                ParametersPanel(
+                    experimentType = experimentType,
+                    isExpanded = true,
+                    onToggle = { isPanelExpanded = false },
+                    pendulumParams = pendulumParams,
+                    onPendulumParamsChange = { pendulumParams = it; scheduleRestart() },
+                    freeFallParams = freeFallParams,
+                    onFreeFallParamsChange = { freeFallParams = it; scheduleRestart() },
+                    collisionParams = collisionParams,
+                    onCollisionParamsChange = { collisionParams = it; scheduleRestart() },
+                    circuitParams = circuitParams,
+                    onCircuitParamsChange = { circuitParams = it; scheduleRestart() },
+                    magneticFieldParams = magneticFieldParams,
+                    onMagneticFieldParamsChange = { magneticFieldParams = it; scheduleRestart() },
+                    refractionParams = refractionParams,
+                    onRefractionParamsChange = { refractionParams = it; scheduleRestart() },
+                    lensParams = lensParams,
+                    onLensParamsChange = { lensParams = it; scheduleRestart() },
+                    brownianParams = brownianParams,
+                    onBrownianParamsChange = { brownianParams = it; scheduleRestart() },
+                    gasExpansionParams = gasExpansionParams,
+                    onGasExpansionParamsChange = { gasExpansionParams = it; scheduleRestart() }
+                )
+            }
+
+            // Play/Pause + Reset + Settings toggle row
             Row(
                 modifier = Modifier
-                    .padding(bottom = 8.dp)
+                    .padding(bottom = 24.dp)
                     .clip(RoundedCornerShape(28.dp))
                     .background(Color.Black.copy(alpha = 0.55f))
                     .padding(horizontal = 12.dp, vertical = 6.dp),
@@ -450,32 +485,6 @@ fun ARScreen(
                     Icon(Icons.Default.Tune, "Параметры", tint = Color.White)
                 }
             }
-
-            // Parameters panel
-            ParametersPanel(
-                experimentType = experimentType,
-                isExpanded = isPanelExpanded,
-                onToggle = { isPanelExpanded = !isPanelExpanded },
-                pendulumParams = pendulumParams,
-                onPendulumParamsChange = { pendulumParams = it; scheduleRestart() },
-                freeFallParams = freeFallParams,
-                onFreeFallParamsChange = { freeFallParams = it; scheduleRestart() },
-                collisionParams = collisionParams,
-                onCollisionParamsChange = { collisionParams = it; scheduleRestart() },
-                circuitParams = circuitParams,
-                onCircuitParamsChange = { circuitParams = it; scheduleRestart() },
-                magneticFieldParams = magneticFieldParams,
-                onMagneticFieldParamsChange = { magneticFieldParams = it; scheduleRestart() },
-                refractionParams = refractionParams,
-                onRefractionParamsChange = { refractionParams = it; scheduleRestart() },
-                lensParams = lensParams,
-                onLensParamsChange = { lensParams = it; scheduleRestart() },
-                brownianParams = brownianParams,
-                onBrownianParamsChange = { brownianParams = it; scheduleRestart() },
-                gasExpansionParams = gasExpansionParams,
-                onGasExpansionParamsChange = { gasExpansionParams = it; scheduleRestart() }
-            )
         }
     }
-
 }
