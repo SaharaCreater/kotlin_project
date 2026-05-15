@@ -8,6 +8,7 @@ import com.app.dopp.data.remote.PhysicsApi
 import com.app.dopp.data.remote.RegisterRequest
 import com.app.dopp.data.remote.UpdateProfileRequest
 import com.app.dopp.data.remote.UserDto
+import com.app.dopp.data.repository.PhysicsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,7 +24,8 @@ sealed class AuthState {
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val api: PhysicsApi,
-    private val authPreferences: AuthPreferences
+    private val authPreferences: AuthPreferences,
+    private val physicsRepository: PhysicsRepository
 ) : ViewModel() {
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Loading)
@@ -69,9 +71,14 @@ class AuthViewModel @Inject constructor(
             _error.value = null
             try {
                 val response = api.login(LoginRequest(email.trim(), password))
+                val previousUserId = authPreferences.userId
+                if (previousUserId != null && previousUserId != response.user.id) {
+                    physicsRepository.clearLocalProgress()
+                }
                 authPreferences.token = response.token
                 authPreferences.saveUser(response.user)
                 _authState.value = AuthState.Authenticated(response.user)
+                physicsRepository.syncProgressFromRemote()
             } catch (e: retrofit2.HttpException) {
                 _error.value = when (e.code()) {
                     401 -> "Неверный email или пароль"
@@ -91,9 +98,11 @@ class AuthViewModel @Inject constructor(
             _error.value = null
             try {
                 val response = api.register(RegisterRequest(name.trim(), email.trim(), password))
+                physicsRepository.clearLocalProgress()
                 authPreferences.token = response.token
                 authPreferences.saveUser(response.user)
                 _authState.value = AuthState.Authenticated(response.user)
+                physicsRepository.syncProgressFromRemote()
             } catch (e: retrofit2.HttpException) {
                 _error.value = when (e.code()) {
                     409 -> "Этот email уже зарегистрирован"
@@ -109,8 +118,11 @@ class AuthViewModel @Inject constructor(
     }
 
     fun logout() {
-        authPreferences.clear()
         _authState.value = AuthState.Unauthenticated
+        authPreferences.clear()
+        viewModelScope.launch {
+            physicsRepository.clearLocalProgress()
+        }
     }
 
     fun updateName(newName: String, onSuccess: () -> Unit = {}) {

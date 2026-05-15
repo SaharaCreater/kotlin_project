@@ -195,8 +195,8 @@ fun ARScreen(
                     override fun onScaleEnd(detector: io.github.sceneview.gesture.ScaleGestureDetector, e: MotionEvent, node: io.github.sceneview.node.Node?) {}
                 }
             )
-            // Dark vignette so canvas drawings are visible over camera
-            Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.42f)))
+            // Light vignette — keeps camera visible while canvas elements remain readable
+            Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.18f)))
         } else {
             // Physics-themed gradient background
             Box(
@@ -227,6 +227,7 @@ fun ARScreen(
             lensParams = lensParams,
             brownianState = brownianState,
             gasExpansionState = gasExpansionState,
+            isARMode = hasCameraPermission && arModeEnabled,
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.85f)

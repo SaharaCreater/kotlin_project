@@ -20,4 +20,7 @@ interface ProgressDao {
 
     @Query("SELECT * FROM experiment_progress WHERE pendingSyncNeeded = 1")
     suspend fun getPendingSync(): List<ExperimentProgress>
+
+    @Query("DELETE FROM experiment_progress")
+    suspend fun clearAllProgress()
 }

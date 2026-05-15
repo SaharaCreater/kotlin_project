@@ -31,18 +31,19 @@ fun SimulationCanvas(
     lensParams: LensParameters,
     brownianState: BrownianMotionState,
     gasExpansionState: GasExpansionState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isARMode: Boolean = false
 ) {
     Canvas(modifier = modifier.fillMaxSize()) {
         when (experimentType) {
             ExperimentType.PENDULUM         -> drawPendulum(pendulumState, pendulumParams)
-            ExperimentType.FREE_FALL        -> drawFreeFall(freeFallState, freeFallParams)
+            ExperimentType.FREE_FALL        -> drawFreeFall(freeFallState, freeFallParams, isARMode)
             ExperimentType.COLLISION        -> drawCollision(collisionState, collisionParams)
             ExperimentType.ELECTRIC_CIRCUIT -> drawCircuit(circuitState)
             ExperimentType.MAGNETIC_FIELD   -> drawMagneticField(magneticFieldState)
             ExperimentType.LIGHT_REFRACTION -> drawRefraction(refractionState, refractionParams)
             ExperimentType.LENS             -> drawLens(lensState, lensParams)
-            ExperimentType.BROWNIAN_MOTION  -> drawBrownian(brownianState)
+            ExperimentType.BROWNIAN_MOTION  -> drawBrownian(brownianState, isARMode)
             ExperimentType.GAS_EXPANSION    -> drawGasExpansion(gasExpansionState, gasExpansionState.currentVolume)
         }
     }
@@ -100,7 +101,7 @@ private fun DrawScope.drawPendulum(state: PendulumState, params: PendulumParamet
 
 // ==================== FREE FALL ====================
 
-private fun DrawScope.drawFreeFall(state: FreeFallState, params: FreeFallParameters) {
+private fun DrawScope.drawFreeFall(state: FreeFallState, params: FreeFallParameters, isARMode: Boolean = false) {
     val cx = size.width / 2f
     val groundY = size.height * 0.88f
     val skyY = size.height * 0.06f
@@ -108,8 +109,9 @@ private fun DrawScope.drawFreeFall(state: FreeFallState, params: FreeFallParamet
 
     // Sky gradient blocks
     drawRect(Color(0xFF1A237E).copy(alpha = 0.2f), Offset(0f, 0f), Size(size.width, groundY))
-    // Ground
-    drawRect(Color(0xFF6D4C41), Offset(0f, groundY), Size(size.width, size.height - groundY))
+    // Ground — fully opaque in normal mode, semi-transparent in AR so camera stays visible
+    val groundAlpha = if (isARMode) 0.45f else 1f
+    drawRect(Color(0xFF6D4C41).copy(alpha = groundAlpha), Offset(0f, groundY), Size(size.width, size.height - groundY))
     drawLine(Color(0xFF4E342E), Offset(0f, groundY), Offset(size.width, groundY), 4f)
 
     // Ruler (right side)
@@ -412,9 +414,11 @@ private fun DrawScope.drawLens(state: LensState, params: LensParameters) {
 
 // ==================== BROWNIAN MOTION ====================
 
-private fun DrawScope.drawBrownian(state: BrownianMotionState) {
-    // Liquid background
-    drawRect(Color(0xFF01579B).copy(alpha = 0.12f), Offset(0f, 0f), Size(size.width, size.height))
+private fun DrawScope.drawBrownian(state: BrownianMotionState, isARMode: Boolean = false) {
+    // Liquid background — skip in AR mode so camera remains visible
+    if (!isARMode) {
+        drawRect(Color(0xFF01579B).copy(alpha = 0.12f), Offset(0f, 0f), Size(size.width, size.height))
+    }
 
     // Map from [-1,1] to canvas
     fun toX(v: Float) = (v + 1f) / 2f * size.width

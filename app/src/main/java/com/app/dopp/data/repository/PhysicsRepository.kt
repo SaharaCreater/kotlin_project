@@ -57,6 +57,10 @@ class PhysicsRepository @Inject constructor(
         }
     }
 
+    suspend fun clearLocalProgress() {
+        progressDao.clearAllProgress()
+    }
+
     suspend fun markCompleted(experimentId: String) {
         val current = progressDao.getProgress(experimentId)
         progressDao.upsertProgress(
