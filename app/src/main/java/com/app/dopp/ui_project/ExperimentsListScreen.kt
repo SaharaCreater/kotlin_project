@@ -1,6 +1,8 @@
 package com.app.dopp.ui_project
 
+import android.graphics.Bitmap
 import androidx.compose.animation.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,16 +19,84 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import com.app.dopp.physics.ExperimentCategory
 import com.app.dopp.physics.ExperimentType
 import com.app.dopp.ui.theme.Violet600
 import com.app.dopp.ui.theme.Violet800
 import com.app.dopp.ui_project.components.OfflineBanner
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.qrcode.QRCodeWriter
+
+private fun generateQrBitmap(content: String, size: Int = 512): Bitmap {
+    val matrix = QRCodeWriter().encode(content, BarcodeFormat.QR_CODE, size, size)
+    val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565)
+    for (x in 0 until size) {
+        for (y in 0 until size) {
+            bmp.setPixel(x, y, if (matrix[x, y]) android.graphics.Color.BLACK else android.graphics.Color.WHITE)
+        }
+    }
+    return bmp
+}
+
+@Composable
+private fun QrDialog(experiment: ExperimentType, onDismiss: () -> Unit) {
+    val bitmap = remember(experiment) { generateQrBitmap(experiment.name) }
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(8.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Brush.linearGradient(listOf(Violet800, Violet600))),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.QrCode2, null, tint = Color.White, modifier = Modifier.size(18.dp))
+                    }
+                    Text(
+                        text = experiment.displayName,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Image(
+                    bitmap = bitmap.asImageBitmap(),
+                    contentDescription = "QR-код для ${experiment.displayName}",
+                    modifier = Modifier
+                        .size(220.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                )
+                Text(
+                    text = "Отсканируйте для запуска опыта",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
+                    Text("Закрыть")
+                }
+            }
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,6 +108,7 @@ fun ExperimentsListScreen(
 ) {
     var selectedCategory by remember { mutableStateOf<ExperimentCategory?>(initialCategory) }
     var searchQuery      by remember { mutableStateOf("") }
+    var qrExperiment    by remember { mutableStateOf<ExperimentType?>(null) }
 
     val filteredExperiments = remember(selectedCategory, searchQuery) {
         val base = if (selectedCategory == null) ExperimentType.entries
@@ -47,6 +118,10 @@ fun ExperimentsListScreen(
             it.displayName.contains(searchQuery, ignoreCase = true) ||
             it.description.contains(searchQuery, ignoreCase = true)
         }
+    }
+
+    qrExperiment?.let { exp ->
+        QrDialog(experiment = exp, onDismiss = { qrExperiment = null })
     }
 
     Scaffold(
@@ -70,11 +145,7 @@ fun ExperimentsListScreen(
                 onValueChange = { searchQuery = it },
                 placeholder = { Text("Поиск экспериментов...") },
                 leadingIcon = {
-                    Icon(
-                        Icons.Default.Search,
-                        null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Icon(Icons.Default.Search, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 },
                 trailingIcon = {
                     if (searchQuery.isNotEmpty()) {
@@ -154,7 +225,8 @@ fun ExperimentsListScreen(
                                 ExperimentCard(
                                     experiment = experiment,
                                     isCompleted = completedIds.contains(experiment.name),
-                                    onClick = { onExperimentSelected(experiment) }
+                                    onClick = { onExperimentSelected(experiment) },
+                                    onQrClick = { qrExperiment = experiment }
                                 )
                             }
                             item { Spacer(Modifier.height(4.dp)) }
@@ -165,7 +237,8 @@ fun ExperimentsListScreen(
                         ExperimentCard(
                             experiment = experiment,
                             isCompleted = completedIds.contains(experiment.name),
-                            onClick = { onExperimentSelected(experiment) }
+                            onClick = { onExperimentSelected(experiment) },
+                            onQrClick = { qrExperiment = experiment }
                         )
                     }
                 }
@@ -215,7 +288,8 @@ private fun CategoryHeader(category: ExperimentCategory) {
 private fun ExperimentCard(
     experiment: ExperimentType,
     isCompleted: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onQrClick: () -> Unit
 ) {
     val categoryColor = getCategoryColor(experiment.category)
     val doneGreen = Color(0xFF059669)
@@ -282,12 +356,7 @@ private fun ExperimentCard(
                                 .border(2.dp, Color(0xFFF0FDF4), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                Icons.Default.Check,
-                                null,
-                                modifier = Modifier.size(10.dp),
-                                tint = Color.White
-                            )
+                            Icon(Icons.Default.Check, null, modifier = Modifier.size(10.dp), tint = Color.White)
                         }
                     }
                 }
@@ -324,12 +393,28 @@ private fun ExperimentCard(
                         }
                     }
                 }
-                Icon(
-                    Icons.Default.ChevronRight,
-                    null,
-                    tint = if (isCompleted) doneGreen.copy(alpha = 0.4f)
-                           else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    IconButton(
+                        onClick = onQrClick,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.QrCode2,
+                            contentDescription = "QR-код",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    Icon(
+                        Icons.Default.ChevronRight,
+                        null,
+                        tint = if (isCompleted) doneGreen.copy(alpha = 0.4f)
+                               else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    )
+                }
             }
         }
     }
@@ -350,13 +435,13 @@ private fun getCategoryColor(category: ExperimentCategory): Color = when (catego
 }
 
 private fun getExperimentIcon(experiment: ExperimentType): ImageVector = when (experiment) {
-    ExperimentType.PENDULUM        -> Icons.Default.SwapVert
-    ExperimentType.FREE_FALL       -> Icons.Default.ArrowDownward
-    ExperimentType.COLLISION       -> Icons.Default.Compress
+    ExperimentType.PENDULUM         -> Icons.Default.SwapVert
+    ExperimentType.FREE_FALL        -> Icons.Default.ArrowDownward
+    ExperimentType.COLLISION        -> Icons.Default.Compress
     ExperimentType.ELECTRIC_CIRCUIT -> Icons.Default.Cable
-    ExperimentType.MAGNETIC_FIELD  -> Icons.Default.Radar
+    ExperimentType.MAGNETIC_FIELD   -> Icons.Default.Radar
     ExperimentType.LIGHT_REFRACTION -> Icons.Default.Flare
-    ExperimentType.LENS            -> Icons.Default.CenterFocusWeak
-    ExperimentType.BROWNIAN_MOTION -> Icons.Default.Grain
-    ExperimentType.GAS_EXPANSION   -> Icons.Default.Air
+    ExperimentType.LENS             -> Icons.Default.CenterFocusWeak
+    ExperimentType.BROWNIAN_MOTION  -> Icons.Default.Grain
+    ExperimentType.GAS_EXPANSION    -> Icons.Default.Air
 }
